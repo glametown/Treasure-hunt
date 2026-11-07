@@ -10,9 +10,12 @@ A single-file interactive treasure hunt: 30 hands-on craft mini-games (6 chapter
 - Works on phones and desktops. Progress and sound preference are saved in the browser's `localStorage`.
 - Chapters: I Pigment & Brush · II Paper & Origami · III Clay & Tactile Kiln · IV Glass, Light & Shadow · V Fiber, Loom & Dye · VI Darkroom & Finale.
 
-## Organizer shortcuts (visible in the UI)
-- **✨ Studio Master Key** on each station auto-completes it.
-- **Gift Vault → Unlock All 30 (Preview)** unseals every gift; **Reset All Progress** starts over.
+## Organizer shortcuts (hidden behind a PIN)
+Tap **🔒 Organizer** at the bottom of the page and enter PIN `1234` to reveal:
+- **✨ Studio Master Key** on each station — auto-completes it.
+- **Gift Vault → Unlock All 30 (Preview)** — unseals every gift. (**Reset All Progress** is always visible.)
+
+The PIN is checked in the browser (`ORGANIZER_PIN` in `index.html`), so it keeps players out but is not real security.
 
 ## Editing the gifts / stations
 Station text, gift names and gift notes are in the `STATIONS` array near the top of the `<script>` in `index.html`.
