@@ -1,0 +1,3738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anamika's 30-Gift Art &amp; Craft Atelier Treasure Hunt</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17" async></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+  <style>
+    :root {
+      --bg-parchment: #FDFBF7;
+      --bg-card: #F6F0E4;
+      --terracotta: #C85A32;
+      --gold: #D4AF37;
+      --indigo: #283655;
+      --sage: #4A6B5D;
+      --ink: #231F20;
+    }
+    * { box-sizing: border-box; }
+    .hidden { display: none !important; }
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .flex-wrap { flex-wrap: wrap; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .justify-center { justify-content: center; }
+    .grid { display: grid; }
+    .gap-2 { gap: 0.5rem; }
+    .gap-3 { gap: 0.75rem; }
+    .gap-4 { gap: 1rem; }
+    .w-full { width: 100%; }
+    .text-center { text-align: center; }
+    button { cursor: pointer; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-parchment);
+      background-image:
+        radial-gradient(circle at 15% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(200, 90, 50, 0.08) 0%, transparent 45%);
+      color: var(--ink);
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+    .font-serif-atelier {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+    }
+    .atelier-card {
+      background: #FFFFFF;
+      border: 1px solid #E5DEC9;
+      box-shadow: 0 10px 30px -10px rgba(35, 31, 32, 0.08), 0 2px 8px rgba(200, 90, 50, 0.05);
+    }
+    .atelier-pill {
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .atelier-pill:hover {
+      transform: translateY(-1px);
+    }
+    .atelier-btn {
+      transition: all 0.18s ease;
+    }
+    .atelier-btn:active {
+      transform: scale(0.97);
+    }
+    @keyframes spinSlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .spin-wheel {
+      animation: spinSlow 8s linear infinite;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.45); }
+      50% { box-shadow: 0 0 0 8px rgba(212, 175, 55, 0); }
+    }
+    .glow-gold {
+      animation: pulseGlow 2s infinite;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #F4EFE6; }
+    ::-webkit-scrollbar-thumb { background: #C8B99E; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #A99678; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Confetti Overlay Canvas -->
+  <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+  <!-- Top Atelier Header -->
+  <header class="sticky top-0 z-30 bg-[#FDFBF7]/95 backdrop-blur-md border-b border-[#E5DEC9] px-4 py-3">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-[#C85A32] to-[#D4AF37] flex items-center justify-center text-white shadow-md font-serif-atelier text-2xl font-bold">
+          A
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-semibold uppercase tracking-widest text-[#C85A32]">Grand Atelier Edition</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-[#F6F0E4] text-[#6E5D4F] border border-[#E5DEC9]">30 Tactile Crafts</span>
+          </div>
+          <h1 class="font-serif-atelier text-xl sm:text-2xl font-bold text-[#231F20] leading-tight">
+            Anamika's 30-Gift Art &amp; Craft Atelier Treasure Hunt
+          </h1>
+        </div>
+      </div>
+
+      <!-- Progress & Utility Controls -->
+      <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+        <div class="bg-[#F6F0E4] border border-[#E5DEC9] rounded-xl px-3 py-1.5 flex items-center gap-2.5">
+          <div class="text-xs font-medium text-[#5C5346]">
+            Gifts Unlocked: <span id="header-progress-count" class="font-bold text-[#C85A32]">0 / 30</span>
+          </div>
+          <div class="w-24 sm:w-32 h-2.5 bg-[#E5DEC9] rounded-full overflow-hidden">
+            <div id="header-progress-bar" class="h-full bg-gradient-to-r from-[#C85A32] to-[#D4AF37] transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <button id="btn-open-vault" type="button" class="atelier-btn px-3.5 py-2 rounded-xl bg-[#283655] hover:bg-[#1E2942] text-white text-xs sm:text-sm font-medium flex items-center gap-1.5 shadow-sm">
+          <span>🎁</span>
+          <span>Gift Vault</span>
+          <span id="vault-badge" class="ml-0.5 px-1.5 py-0.2 bg-[#D4AF37] text-[#231F20] rounded-full text-xs font-bold">0</span>
+        </button>
+
+        <button id="btn-toggle-sound" type="button" class="atelier-btn px-3 py-2 rounded-xl bg-[#F6F0E4] hover:bg-[#EBE2D0] text-[#231F20] border border-[#E5DEC9] text-xs sm:text-sm font-medium" title="Toggle Atelier Sound Effects">
+          🔊 Sound On
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Chapter Navigation Bar -->
+  <nav class="bg-[#F6F0E4]/80 border-b border-[#E5DEC9] px-4 py-2.5">
+    <div class="max-w-7xl mx-auto flex flex-col gap-2">
+      <div id="chapter-tabs" class="flex items-center gap-1.5 overflow-x-auto pb-1"></div>
+      <div id="puzzle-pills" class="flex items-center gap-1.5 flex-wrap"></div>
+    </div>
+  </nav>
+
+  <!-- Main Workbench Area -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+    <!-- Left / Main Interactive Craft Workbench (8 cols) -->
+    <section class="lg:col-span-8 atelier-card rounded-2xl p-5 sm:p-7 flex flex-col gap-5">
+      <!-- Workbench Top Bar -->
+      <div class="flex flex-wrap items-start justify-between gap-3 border-b border-[#EFE9DC] pb-4">
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span id="stage-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-[#C85A32]/10 text-[#C85A32]">
+              Station #1 of 30
+            </span>
+            <span id="stage-chapter-label" class="text-xs font-medium text-[#6E5D4F]">
+              Chapter I • Pigment &amp; Brush Conservatory
+            </span>
+            <span id="stage-status-pill" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#F6F0E4] text-[#6E5D4F]">
+              In Progress
+            </span>
+          </div>
+          <h2 id="stage-title" class="font-serif-atelier text-2xl sm:text-3xl font-bold text-[#231F20] mt-1">
+            1. Color Palette Mixing
+          </h2>
+          <p id="stage-subtitle" class="text-sm text-[#5C5346] mt-0.5">
+            Blend Crimson Red, Ochre Yellow, Cobalt Blue, and Titanium White drops to match Sunset Terracotta.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button id="btn-prev-stage" type="button" class="atelier-btn px-3 py-1.5 rounded-lg border border-[#E5DEC9] bg-[#FDFBF7] hover:bg-[#F6F0E4] text-xs font-semibold text-[#231F20]">
+            ← Prev
+          </button>
+          <button id="btn-next-stage" type="button" class="atelier-btn px-3 py-1.5 rounded-lg border border-[#E5DEC9] bg-[#FDFBF7] hover:bg-[#F6F0E4] text-xs font-semibold text-[#231F20]">
+            Next →
+          </button>
+        </div>
+      </div>
+
+      <!-- Interactive Canvas / Workbench Container -->
+      <div id="workbench-mount" class="min-h-[370px] bg-[#FDFBF7] border border-[#E5DEC9] rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center relative">
+        <!-- Dynamically populated per puzzle -->
+      </div>
+
+      <!-- Workbench Footer Controls -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[#EFE9DC]">
+        <div class="flex items-center gap-2 flex-wrap">
+          <button id="btn-stage-reset" type="button" class="atelier-btn px-3.5 py-2 rounded-xl bg-[#F6F0E4] hover:bg-[#E8DEC8] text-[#231F20] text-xs font-semibold border border-[#E5DEC9]">
+            ↺ Reset Workbench
+          </button>
+          <button id="btn-stage-hint" type="button" class="atelier-btn px-3.5 py-2 rounded-xl bg-[#FDFBF7] hover:bg-[#F6F0E4] text-[#283655] text-xs font-semibold border border-[#D4AF37]">
+            💡 Atelier Hint
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button id="btn-stage-autosolve" type="button" class="atelier-btn px-3.5 py-2 rounded-xl bg-[#D4AF37]/20 hover:bg-[#D4AF37]/35 text-[#6E5111] text-xs font-semibold border border-[#D4AF37]/50" title="Demonstrate or auto-complete this craft mechanic">
+            ✨ Studio Master Key (Auto-Craft)
+          </button>
+        </div>
+      </div>
+
+      <!-- Hint Drawer -->
+      <div id="hint-box" class="hidden rounded-xl bg-[#FFFDF7] border border-[#D4AF37] p-3.5 text-xs sm:text-sm text-[#4B3E2A]">
+        <div class="font-bold text-[#9A7418] mb-0.5">Master Artisan's Note:</div>
+        <div id="hint-text"></div>
+      </div>
+    </section>
+
+    <!-- Right Column: Curatorial Guide, Gift Preview & Station Log (4 cols) -->
+    <aside class="lg:col-span-4 flex flex-col gap-5">
+      <!-- Current Gift Reward Card -->
+      <div class="atelier-card rounded-2xl p-5 bg-gradient-to-b from-[#FFFFFF] to-[#FAF5EA]">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-[#C85A32]">Station Keepsake Box</span>
+          <span id="aside-gift-number" class="text-xs font-semibold text-[#6E5D4F]">Gift #1</span>
+        </div>
+
+        <div id="aside-gift-card" class="mt-3 rounded-xl border border-[#E5DEC9] p-4 bg-[#FDFBF7] flex flex-col items-center text-center gap-2">
+          <!-- Populated dynamically based on locked/unlocked state -->
+        </div>
+      </div>
+
+      <!-- Tactile Craft Instructions & Mechanic Notes -->
+      <div class="atelier-card rounded-2xl p-5">
+        <h3 class="font-serif-atelier text-lg font-bold text-[#231F20] flex items-center gap-2">
+          <span>📜</span>
+          <span>Artisan's Technique Brief</span>
+        </h3>
+        <p id="aside-instructions" class="text-xs sm:text-sm text-[#5C5346] mt-2 leading-relaxed"></p>
+        <div class="mt-4 pt-3 border-t border-[#EFE9DC] flex items-center justify-between text-xs text-[#6E5D4F]">
+          <span>Mechanic Type:</span>
+          <span id="aside-mechanic-tag" class="font-semibold text-[#283655] bg-[#283655]/10 px-2.5 py-0.5 rounded-full"></span>
+        </div>
+      </div>
+
+      <!-- Quick Overview of All 30 Stations -->
+      <div class="atelier-card rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-serif-atelier text-lg font-bold text-[#231F20]">30-Station Atelier Map</h3>
+          <span id="map-summary-text" class="text-xs text-[#C85A32] font-semibold">0/30 Done</span>
+        </div>
+        <div id="mini-grid-30" class="grid grid-cols-6 gap-1.5"></div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Gift Unlock Celebration Modal -->
+  <div id="unlock-modal" class="fixed inset-0 z-40 hidden bg-black/55 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-[#FDFBF7] border-2 border-[#D4AF37] rounded-2xl max-w-md w-full p-6 shadow-2xl text-center relative animate-fadeIn">
+      <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-[#C85A32] to-[#D4AF37] flex items-center justify-center text-3xl shadow-md">
+        <span id="modal-gift-icon">🎨</span>
+      </div>
+      <div class="mt-3 text-xs font-bold uppercase tracking-widest text-[#C85A32]" id="modal-gift-label">
+        Gift #1 Unlocked!
+      </div>
+      <h3 class="font-serif-atelier text-2xl sm:text-3xl font-bold text-[#231F20] mt-1" id="modal-gift-title">
+        Handmade Terracotta Watercolor Pan Set
+      </h3>
+      <p class="text-sm text-[#5C5346] mt-2 leading-relaxed italic" id="modal-gift-note">
+        "For Anamika — may every sunset find its way onto your sketchbook pages."
+      </p>
+      <div class="mt-4 p-3 rounded-xl bg-[#F6F0E4] border border-[#E5DEC9] text-xs text-[#4B3E2A]" id="modal-craft-summary">
+        Craft Mastered! Added to your 30-Gift Atelier Vault.
+      </div>
+      <div class="mt-5 flex items-center justify-center gap-3">
+        <button id="btn-modal-stay" type="button" class="atelier-btn px-4 py-2.5 rounded-xl border border-[#E5DEC9] bg-white hover:bg-[#F6F0E4] text-xs sm:text-sm font-semibold text-[#231F20]">
+          Admire Craft
+        </button>
+        <button id="btn-modal-next" type="button" class="atelier-btn px-5 py-2.5 rounded-xl bg-[#C85A32] hover:bg-[#B04B25] text-white text-xs sm:text-sm font-semibold shadow-md">
+          Next Station →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 30-Gift Vault Modal -->
+  <div id="vault-modal" class="fixed inset-0 z-40 hidden bg-black/55 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-[#FDFBF7] border border-[#E5DEC9] rounded-2xl max-w-4xl w-full max-h-[88vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-4 sm:p-5 border-b border-[#E5DEC9] bg-[#F6F0E4] flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h2 class="font-serif-atelier text-2xl font-bold text-[#231F20]">Anamika's 30-Gift Atelier Vault</h2>
+          <p class="text-xs text-[#5C5346]">Complete each tactile craft station to unseal its keepsake gift card.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btn-vault-unlock-all" type="button" class="atelier-btn px-3 py-1.5 rounded-lg bg-[#D4AF37]/25 hover:bg-[#D4AF37]/40 text-[#5C4308] text-xs font-semibold border border-[#D4AF37]">
+            ✨ Unlock All 30 (Preview)
+          </button>
+          <button id="btn-vault-reset-all" type="button" class="atelier-btn px-3 py-1.5 rounded-lg bg-white hover:bg-[#F2E9D8] text-[#8C2D19] text-xs font-semibold border border-[#E5DEC9]">
+            Reset All Progress
+          </button>
+          <button id="btn-close-vault" type="button" class="atelier-btn px-3 py-1.5 rounded-lg bg-[#231F20] text-white text-xs font-semibold">
+            ✕ Close
+          </button>
+        </div>
+      </div>
+      <div id="vault-grid" class="p-4 sm:p-6 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5"></div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // DATA: 6 CHAPTERS & 30 ART & CRAFT PUZZLE STATIONS + BESPOKE GIFTS
+    // =========================================================================
+    const CHAPTERS = [
+      { id: 1, roman: "I", name: "Pigment & Brush", range: [1, 5], icon: "🎨" },
+      { id: 2, roman: "II", name: "Paper & Origami", range: [6, 10], icon: "🦢" },
+      { id: 3, roman: "III", name: "Clay & Tactile Kiln", range: [11, 15], icon: "🏺" },
+      { id: 4, roman: "IV", name: "Glass, Light & Shadow", range: [16, 20], icon: "🪟" },
+      { id: 5, roman: "V", name: "Fiber, Loom & Dye", range: [21, 25], icon: "🧶" },
+      { id: 6, roman: "VI", name: "Darkroom & Finale", range: [26, 30], icon: "🏛️" }
+    ];
+
+    const STATIONS = [
+      {
+        id: 1, chapter: 1,
+        title: "Color Palette Mixing",
+        subtitle: "Blend Red, Yellow, Blue, and White pigment drops to match Sunset Terracotta.",
+        mechanic: "Pigment Ratio Blending",
+        instructions: "Add drops of Crimson Red, Ochre Yellow, Cobalt Blue, and Titanium White into the porcelain mixing well. Match the Sunset Terracotta formula (3 Red, 2 Yellow, 0 Blue, 1 White — or any equivalent 3:2:0:1 ratio) and stir with the palette knife.",
+        hint: "Sunset Terracotta requires exactly 3 drops of Crimson Red, 2 drops of Ochre Yellow, 0 drops of Cobalt Blue, and 1 drop of Titanium White.",
+        giftIcon: "🎨",
+        giftTitle: "Handmade Terracotta Half-Pan Watercolor Set",
+        giftNote: "Mineral-ground Siena, Venetian Red, and Warm Ochre watercolors hand-mulled with gum arabic and wildflower honey."
+      },
+      {
+        id: 2, chapter: 1,
+        title: "Charcoal Eraser",
+        subtitle: "Rub the digital vine charcoal dust layer to uncover 3 hidden studio brushes.",
+        mechanic: "Kneaded Eraser Rubbing",
+        instructions: "Drag your cursor or finger across the charcoal-dusted sketching board (or click the Sweep Kneaded Eraser button) to clear at least 60% of the soot and reveal all 3 hidden Golden Atelier Brushes underneath.",
+        hint: "Rub across the left, middle, and right sections of the canvas (or click 'Sweep Kneaded Eraser') until the 3 brushes shine through.",
+        giftIcon: "🖌️",
+        giftTitle: "Kolinsky Sable & Silver Ferrule Brush Trio",
+        giftNote: "Three hand-tied miniature detail, wash, and fan brushes balanced in birchwood handles."
+      },
+      {
+        id: 3, chapter: 1,
+        title: "Pantograph Mirror Maze",
+        subtitle: "Navigate the horizontally mirrored left/right engraving stylus to the Star Nib.",
+        mechanic: "Mirrored Dual-Stylus Linkage",
+        instructions: "The brass pantograph reverses left and right movements on the silver mirror plate! Use the directional buttons (or arrow keys) to guide the right-hand engraving stylus from the top-center start (Row 1, Col 3) to the Bottom Star Nib (Row 5, Col 3) while avoiding the copper clamp blocks.",
+        hint: "Press Left (which moves the mirrored stylus Right) or Right (which moves it Left) to step around barriers down to Row 5, Col 3.",
+        giftIcon: "🧭",
+        giftTitle: "Victorian Brass Folding Pantograph Arm",
+        giftNote: "Precision pantograph linkage for scaling botanical sketches and mirror engravings."
+      },
+      {
+        id: 4, chapter: 1,
+        title: "Symmetrical Inkblot",
+        subtitle: "Paint the left half of the 4×3 grid and fold the parchment to match the Butterfly.",
+        mechanic: "Rorschach Crease Symmetry",
+        instructions: "Inspect the Monarch Butterfly Wing ink pattern on the right half of the crease. Dab matching sumi ink onto the Left 4×3 grid so that when folded across the center spine, both wings mirror each other.",
+        hint: "Paint Left Grid cells: Row 1 (Cols 1, 3), Row 2 (Cols 1, 2, 3), Row 3 (Cols 2, 3), Row 4 (Col 3), then click 'Fold & Press Parchment'.",
+        giftIcon: "🦋",
+        giftTitle: "Sumi Ink Stick & Carved Slate Suzuri Inkstone",
+        giftNote: "Pine-soot ink stick scented with sandalwood for crisp symmetrical ink wash prints."
+      },
+      {
+        id: 5, chapter: 1,
+        title: "Calligraphy Ink Spill",
+        subtitle: "Trace the 7 sequential copperplate calligraphy nib nodes from 1 to 7.",
+        mechanic: "Sequential Nib Flourish",
+        instructions: "Dip the pointed brazen nib and click the 7 gilded flourish nodes in strict numerical order (1 → 2 → 3 → 4 → 5 → 6 → 7) to ink a continuous swan-quill flourish without lifting the pen.",
+        hint: "Click Node 1 first, then follow the golden curve through 2, 3, 4, 5, 6, and 7.",
+        giftIcon: "✒️",
+        giftTitle: "Murano Swirl Glass Dip Pen & Gold Shimmer Ink",
+        giftNote: "Twisted spiral glass nib that holds enough 24k shimmer ink for an entire illuminated page."
+      },
+      {
+        id: 6, chapter: 2,
+        title: "Color Gradient Sorter",
+        subtitle: "Swap the 8 scrambled artisanal paper swatches into a seamless sunset gradient.",
+        mechanic: "Chromatic Swatch Sorting",
+        instructions: "Click any swatch and then click a second swatch to swap their positions. Arrange all 8 handmade lokta paper cards from 1 (Deep Plum Night) on the left to 8 (Warm Apricot Dawn) on the right.",
+        hint: "Match the subtle Roman numeral / luminance progression from darkest plum (#1) on the far left to brightest peach (#8) on the far right.",
+        giftIcon: "🌈",
+        giftTitle: "200-Sheet Chiyogami & Lokta Gradient Swatch Book",
+        giftNote: "Hand-dyed Nepalese and Kyoto papers bound in a brass screw-post fan deck."
+      },
+      {
+        id: 7, chapter: 2,
+        title: "Paint by Numbers / Picross",
+        subtitle: "Fill the 5×5 nonogram canvas using the row and column clues to paint a Heart.",
+        mechanic: "5×5 Nonogram Pixel Grid",
+        instructions: "Use the numbers beside each row and column to paint the exact cells required: Row 1 has [2, 2], Row 2 has [5], Row 3 has [5], Row 4 has [3], and Row 5 has [1].",
+        hint: "Row 1: X X . X X | Row 2: X X X X X | Row 3: X X X X X | Row 4: . X X X . | Row 5: . . X . .",
+        giftIcon: "❤️",
+        giftTitle: "Linen Canvas Mini-Easel & Acrylic Gouache Set",
+        giftNote: "Velvety matte acrylic gouache tubes with three miniature beechwood tabletop easels."
+      },
+      {
+        id: 8, chapter: 2,
+        title: "Scrapbook Layering Z-Index",
+        subtitle: "Reorder the 5 tactile scrapbook collage elements from bottom backing (Z-1) to top seal (Z-5).",
+        mechanic: "Collage Z-Index Stack",
+        instructions: "Use the Move Up / Move Down buttons (or click two layers to swap) so the collage stacks properly from Bottom (Z-1) to Top (Z-5): 1. Linen Backing → 2. Sheet Music → 3. Pressed Lavender → 4. Polaroid Frame → 5. Gold Wax Seal.",
+        hint: "Bottom Z-1: Vintage Linen Backing; Z-2: Torn Sheet Music; Z-3: Pressed Lavender; Z-4: Polaroid Frame; Top Z-5: Gold Wax Seal Stamp.",
+        giftIcon: "📒",
+        giftTitle: "Leather-Bound Deckle-Edge Scrapbook & Wax Seal Kit",
+        giftNote: "Florentine marbled endpapers with a custom brass botanical wax stamp and melting spoon."
+      },
+      {
+        id: 9, chapter: 2,
+        title: "Origami Sequence",
+        subtitle: "Click the 5 traditional origami crease steps in sequence to fold the Golden Crane.",
+        mechanic: "Sequential Crease Folding",
+        instructions: "Select the 5 origami diagram cards in the authentic Orizuru folding sequence from flat washi square to inflated Golden Crane.",
+        hint: "Order: 1. Diagonal Valley Crease → 2. Preliminary Square Base → 3. Petal Fold Diamond → 4. Inside Reverse-Fold Neck & Tail → 5. Spread Wings & Inflate.",
+        giftIcon: "🦢",
+        giftTitle: "Kyoto Gold-Leaf Foil Washi Origami Treasury",
+        giftNote: "Embossed metallic crane papers housed in a paulownia wood keepsake box."
+      },
+      {
+        id: 10, chapter: 2,
+        title: "Paper Snowflake Cutout",
+        subtitle: "Snip the 4 marked pattern notches on the folded triangle wedge and unfold the snowflake.",
+        mechanic: "Kirigami Radial Cutout",
+        instructions: "Click the 4 golden dashed pattern zones (Crown Tip, Left Diamond, Right Fern, Center Arch) with your stork scissors while leaving the 2 structural ribs intact, then click 'Unfold Kirigami Snowflake'.",
+        hint: "Snip ONLY the 4 zones marked 'Cut Target' (Crown Tip, Left Diamond, Right Fern, Center Arch) and leave Structural Ribs A & B uncut, then click Unfold.",
+        giftIcon: "❄️",
+        giftTitle: "Forged Gold Stork Embroidery & Kirigami Scissors",
+        giftNote: "Needle-sharp Sheffield steel blades shaped like a gilded crane for intricate paper lace."
+      },
+      {
+        id: 11, chapter: 3,
+        title: "Quilling Coil Tightness",
+        subtitle: "Wind the paper filigree strip to 72%–88% tightness on the slotted needle and dab glue.",
+        mechanic: "Filigree Tension Winding",
+        instructions: "Use the Wind / Loosen controls or slider to bring the paper coil tension into the 72%–88% sweet spot, then click 'Apply Dab of PVA Glue' to lock the Marquise petal.",
+        hint: "Adjust coil tightness until the gauge reads between 72% and 88%, then click 'Apply Dab of PVA Glue'.",
+        giftIcon: "🌀",
+        giftTitle: "Rosewood Slotted Quilling Needle & Curling Coach",
+        giftNote: "Complete filigree paper strips in 45 jewel tones with an inlaid brass sizing board."
+      },
+      {
+        id: 12, chapter: 3,
+        title: "Washi Tape Bridge",
+        subtitle: "Match the 2cm, 3cm, 4cm, and 5cm patterned washi tape rolls to the 4 torn map gaps.",
+        mechanic: "Measured Tear Restoration",
+        instructions: "First click one of the 4 Japanese Washi Tape rolls (2cm, 3cm, 4cm, or 5cm), then click the map tear gap requiring that exact length to mend the treasure map.",
+        hint: "Match 3cm tape to Tear A (3cm), 5cm tape to Tear B (5cm), 2cm tape to Tear C (2cm), and 4cm tape to Tear D (4cm).",
+        giftIcon: "🩹",
+        giftTitle: "Kamoi Mt Gold-Foiled Botanical Washi Tape Carousel",
+        giftNote: "Twenty-four collector rolls featuring pressed ferns, constellations, and gilded wave motifs."
+      },
+      {
+        id: 13, chapter: 3,
+        title: "Linocut Printmaking",
+        subtitle: "Carve the 3×3 mirror-reverse linoleum block so it stamps a crisp right-facing 'L' print.",
+        mechanic: "Relief Mirror-Reverse Carving",
+        instructions: "Relief blocks print in horizontal reverse! Toggle the 3×3 linoleum cells between Raised Ink (Uncarved) and Carved Away so the block shows a backward '⅃' (Top-Right, Mid-Right, and all 3 Bottom cells raised), then click 'Ink & Press Print'.",
+        hint: "Leave Raised (Uncarved): Row 1 Col 3, Row 2 Col 3, and Row 3 Cols 1, 2, 3. Carve away the other 4 cells.",
+        giftIcon: "🖨️",
+        giftTitle: "Swiss Pfeil Linocut Gouge Set & Rubber Brayer",
+        giftNote: "Palm-handled pearwood carving gouges with a brass-framed soft rubber ink roller."
+      },
+      {
+        id: 14, chapter: 3,
+        title: "Pottery Wheel Carving",
+        subtitle: "Shape the 5 spinning terracotta clay bands to match the Classical Amphora blueprint.",
+        mechanic: "Lathe Profile Shaping",
+        instructions: "Adjust each of the 5 horizontal clay bands on the spinning wheel using the '-' and '+' rib tools until their widths match the Amphora blueprint: Rim=3, Neck=2, Shoulder=5, Belly=4, Foot=2.",
+        hint: "Set Band 1 (Lip Rim) to 3, Band 2 (Neck) to 2, Band 3 (Shoulder) to 5, Band 4 (Belly) to 4, and Band 5 (Foot) to 2.",
+        giftIcon: "🏺",
+        giftTitle: "Boxwood Kemper Pottery Ribs & Wire Clay Cutter",
+        giftNote: "Twelve contoured throwing ribs, loop trimmers, and chamois leather rim smoothers."
+      },
+      {
+        id: 15, chapter: 3,
+        title: "Kintsugi Repair",
+        subtitle: "Assemble the 4 fractured celadon shards and brush liquid 24k gold across all 4 seams.",
+        mechanic: "Urushi & Gold Seam Joinery",
+        instructions: "Step 1: Click all 4 porcelain shards in the tray to fit them back into the bowl frame. Step 2: Once assembled, click all 4 fracture seams to brush luminous gold dust lacquer over the cracks.",
+        hint: "Click each of the 4 shards to place them, then click each of the 4 golden seam buttons to complete the Kintsugi restoration.",
+        giftIcon: "🥣",
+        giftTitle: "Authentic Kintsugi Urushi & Mica Gold Repair Kit",
+        giftNote: "Japanese lacquer, bamboo spatulas, and genuine brass-gold dust for honoring mended vessels."
+      },
+      {
+        id: 16, chapter: 4,
+        title: "Stained Glass Map Coloring",
+        subtitle: "Color the 6 touching cathedral window panes using 3 glass tints with zero adjacent conflicts.",
+        mechanic: "Graph Chromatic Glass Panes",
+        instructions: "Select Amber Gold, Cobalt Sapphire, or Ruby Rose from the glazier's palette and click any of the 6 leaded glass panes. Every pane must be colored, and no two panes sharing a lead border may have the same tint.",
+        hint: "One valid 3-coloring: Pane 1=Amber, Pane 2=Cobalt, Pane 3=Ruby, Pane 4=Ruby, Pane 5=Amber, Pane 6=Cobalt.",
+        giftIcon: "🪟",
+        giftTitle: "Copper Foil Stained Glass Sun-Catcher Soldering Kit",
+        giftNote: "Opalescent cathedral glass sheets, copper foil tape, and a temperature-controlled iron."
+      },
+      {
+        id: 17, chapter: 4,
+        title: "Shadow Puppets",
+        subtitle: "Rotate the 3 carved wooden blocks to 180°, 90°, and 270° to cast a Teapot shadow.",
+        mechanic: "Projected Silhouette Alignment",
+        instructions: "Rotate the three turntable blocks in front of the studio lantern until Block A (Spout) is at 180°, Block B (Vessel Body) is at 90°, and Block C (Handle) is at 270°.",
+        hint: "Click Rotate on Block A until 180°, Block B until 90°, and Block C until 270°.",
+        giftIcon: "🫖",
+        giftTitle: "Wayang & Brass Articulated Shadow Theatre Lantern",
+        giftNote: "Laser-cut basswood shadow puppets with a warm Edison-bulb projection stage."
+      },
+      {
+        id: 18, chapter: 4,
+        title: "Diorama Shadow Box",
+        subtitle: "Tune the 3 depth lighting layers to Warm Amber, Silhouette Off, and Moonlight Blue.",
+        mechanic: "Multi-Plane Theatre Lighting",
+        instructions: "Cycle the lighting switches on the 3 paper-cut depth planes so Foreground Archway = Warm Amber, Midground Forest = Silhouette Off, and Backdrop Sky = Moonlight Blue.",
+        hint: "Set Layer 1 (Foreground) to Warm Amber, Layer 2 (Midground) to Silhouette Off, and Layer 3 (Backdrop) to Moonlight Blue.",
+        giftIcon: "🏮",
+        giftTitle: "3D Paper-Cut Lightbox & Warm Micro-LED Frame",
+        giftNote: "Layered 300gsm ivory cardstock sheets inside a walnut shadow box with dimmer switch."
+      },
+      {
+        id: 19, chapter: 4,
+        title: "Kinetic Mobile Balance",
+        subtitle: "Swap the 4 weighted charms on the mobile hooks so Left Torque = 10 and Right Torque = 10.",
+        mechanic: "Calder Lever Torque Equilibrium",
+        instructions: "Each hook multiplies the charm's weight by its lever distance! Left hooks have multipliers ×2 and ×1; Right hooks have ×1 and ×3. Swap any two charms until Left Torque = 10 and Right Torque = 10.",
+        hint: "Place 4g Sun on Left-Outer (×2 = 8), 2g Bird on Left-Inner (×1 = 2) -> Left=10. Place 1g Feather on Right-Inner (×1 = 1) and 3g Prism on Right-Outer (×3 = 9) -> Right=10.",
+        giftIcon: "⚖️",
+        giftTitle: "Hammered Brass Kinetic Mobile & Sea-Glass Kit",
+        giftNote: "Balanced brass wire armatures, raw crystal prisms, and hand-patinated copper moons."
+      },
+      {
+        id: 20, chapter: 4,
+        title: "Virtual String Art",
+        subtitle: "Click pegs in the +3 star sequence around the 8-peg circular board to weave an octagram.",
+        mechanic: "Modular Star Polygon Threading",
+        instructions: "Starting from Peg 0 (already anchored), click every 3rd peg clockwise (+3 mod 8) around the 8-peg mahogany ring: 3 → 6 → 1 → 4 → 7 → 2 → 5 → 0.",
+        hint: "Follow the highlighted next peg in sequence: 3, then 6, 1, 4, 7, 2, 5, and finally back to 0.",
+        giftIcon: "✨",
+        giftTitle: "Velvet-Backed Brass Pin & Metallic Silk String Art Board",
+        giftNote: "Two hundred dome-headed brass nails with spools of spun gold and celestial indigo silk."
+      },
+      {
+        id: 21, chapter: 5,
+        title: "Weaving Loom",
+        subtitle: "Toggle the frayed warp/weft intersections on the 3×3 loom to alternate Over and Under.",
+        mechanic: "Tabby Plain-Weave Matrix",
+        instructions: "A balanced tabby weave alternates Over and Under on every neighbouring thread. Click any frayed cell on the 3×3 loom so the pattern alternates: Row 1 (Over, Under, Over), Row 2 (Under, Over, Under), Row 3 (Over, Under, Over).",
+        hint: "Make corners and center 'OVER' (5 cells) and the 4 edge-middle cells 'UNDER'.",
+        giftIcon: "🧶",
+        giftTitle: "Ashwood Lap Tapestry Loom & Hand-Spun Merino Roving",
+        giftNote: "Complete with two wooden weaving shuttles, shedding stick, and botanical-dyed wools."
+      },
+      {
+        id: 22, chapter: 5,
+        title: "Beaded Necklace Sequence",
+        subtitle: "Complete the repeating 4-bead Ruby – Gold – Lapis – Gold artisan necklace pattern.",
+        mechanic: "Periodic Bead Stringing",
+        instructions: "Look at the first 4 beads already strung on the silk cord (Ruby, Gold, Lapis, Gold). Click the gemstone bowls in the exact same order to fill the remaining 4 clasp slots.",
+        hint: "Click: 1. Carnelian Ruby → 2. Hammered Gold → 3. Afghani Lapis → 4. Hammered Gold.",
+        giftIcon: "📿",
+        giftTitle: "Miyuki Delica Glass Seed Bead & Gemstone Tray",
+        giftNote: "Flocked velvet beadwork board with 24k gold-plated findings and silk beading thread."
+      },
+      {
+        id: 23, chapter: 5,
+        title: "Macramé Knots",
+        subtitle: "Tie the 5-step L-Over-R, R-Over-L, Berry, L-Over-R, Crown Cinch macramé sequence.",
+        mechanic: "Artisanal Cord Knot Sequence",
+        instructions: "Click the knot buttons in the 5-step tapestry recipe to braid the driftwood wall hanging: 1. L-Over-R → 2. R-Over-L → 3. Berry Knot → 4. L-Over-R → 5. Crown Cinch.",
+        hint: "Click in order: L-Over-R, then R-Over-L, then Berry, then L-Over-R, then Crown Cinch.",
+        giftIcon: "🪢",
+        giftTitle: "Combed Organic Cotton Macramé Cord & Driftwood Dowel",
+        giftNote: "Three-ply twisted ivory macramé cord with solid brass rings and a fringe comb."
+      },
+      {
+        id: 24, chapter: 5,
+        title: "Tie-Dye Fold & Dip",
+        subtitle: "Bind the spiral pleats with rubber bands and dye Center=Marigold, Middle=Magenta, Outer=Indigo.",
+        mechanic: "Shibori Resist Dyeing",
+        instructions: "First click 'Bind Spiral Rubber Bands'. Then select a dye bottle and click each fabric zone so Center Core = Marigold, Middle Ring = Magenta, and Outer Edge = Indigo. Finally click 'Rinse & Unbind'!",
+        hint: "1. Click 'Bind Spiral Rubber Bands'. 2. Color Center=Marigold, Middle=Magenta, Outer=Indigo. 3. Click 'Rinse & Unbind'.",
+        giftIcon: "👕",
+        giftTitle: "Natural Indigo & Botanical Shibori Vat Dyeing Kit",
+        giftNote: "Authentic wood-block clamping plates, madder root, marigold extract, and raw silk scarves."
+      },
+      {
+        id: 25, chapter: 5,
+        title: "Cross-Stitch Untangler",
+        subtitle: "Pull the 5 overlapping embroidery threads free in top-to-bottom reverse order: E, C, A, D, B.",
+        mechanic: "Top-Down Thread Unstacking",
+        instructions: "Five DMC embroidery skeins overlap across the hoop. Because you can only pull the topmost unpinned thread without tangling, pull them in strict top-to-bottom order: E → C → A → D → B.",
+        hint: "Click the thread spools in exact order: Thread E, then Thread C, then Thread A, then Thread D, then Thread B.",
+        giftIcon: "🪡",
+        giftTitle: "Rosewood Embroidery Hoop & 100-Skein Silk Floss Chest",
+        giftNote: "Double-mercerized pearl cotton and silk threads organized in a two-drawer collector cabinet."
+      },
+      {
+        id: 26, chapter: 6,
+        title: "Darkroom Developer",
+        subtitle: "Brush developer across the print to 75%–95% exposure and transfer to the Stop Bath.",
+        mechanic: "Silver-Gelatin Chemical Timing",
+        instructions: "Under the ruby safelight, click 'Brush Developer (+15%)' (or use Fine +5%) to bring the silver halide exposure into the 75%–95% window, then click 'Transfer to Stop Bath' to lock the tonal contrast.",
+        hint: "Click 'Brush Developer (+15%)' 5 or 6 times until exposure is between 75% and 95%, then click 'Transfer to Stop Bath'.",
+        giftIcon: "🎞️",
+        giftTitle: "Cyanotype Sun-Print & Botanical Contact Frame Kit",
+        giftNote: "Ferricyanide sensitizer bottles, cold-press watercolor paper, and a hinged glass contact frame."
+      },
+      {
+        id: 27, chapter: 6,
+        title: "Camera Focus Blur",
+        subtitle: "Rack the bellows focus slider to 20mm, 55mm, and 90mm to lock all 3 depth planes.",
+        mechanic: "Macro Focus Stacking",
+        instructions: "Move the brass focus ring slider to 20mm (Foreground Florals), 55mm (Midground Bust), and 90mm (Background Stained Glass) and click 'Lock Depth Plane' at each focal distance.",
+        hint: "Set slider to 20mm and click Lock, then 55mm and click Lock, then 90mm and click Lock.",
+        giftIcon: "📷",
+        giftTitle: "Handcrafted Walnut Pinhole & Macro Lens Studio Box",
+        giftNote: "Zero-vignette brass pinhole aperture with a ground-glass composing screen."
+      },
+      {
+        id: 28, chapter: 6,
+        title: "Tangram Canvas",
+        subtitle: "Rotate all 5 geometric Tangram tiles to 0° alignment to form the Graceful Swan.",
+        mechanic: "Geometric Tile Rotation",
+        instructions: "Click each of the 5 painted wooden Tangram tiles (Neck, Beak, Wing, Body, Tail) to rotate it in 90° steps until every tile reads 0° and locks into the Swan silhouette.",
+        hint: "Click any tile whose angle is not 0° until all 5 tiles display 0°.",
+        giftIcon: "📐",
+        giftTitle: "Inlaid Teak & Brass Seven-Piece Tangram Puzzle Box",
+        giftNote: "Velvet-lined geometric puzzle tiles with a 100-silhouette porcelain pattern book."
+      },
+      {
+        id: 29, chapter: 6,
+        title: "Mandala Sand Art",
+        subtitle: "Rotate the 4 concentric colored sand mandala rings to 0° sacred alignment.",
+        mechanic: "Concentric Ring Alignment",
+        instructions: "Use the Rotate buttons on the 4 concentric mandala rings (Inner Lotus, Sunburst Petals, Geometric Fret, Outer Guardians) until all 4 rings align at 0°.",
+        hint: "Click '+45°' or '+90°' on each ring until Ring 1, Ring 2, Ring 3, and Ring 4 all show 0°.",
+        giftIcon: "☸️",
+        giftTitle: "Brass Chakpur Sand-Painting Funnels & Mineral Sand Jars",
+        giftNote: "Ridged brass vibration cones with crushed lapis, turquoise, coral, and saffron marble sands."
+      },
+      {
+        id: 30, chapter: 6,
+        title: "The Masterpiece Gallery Finale",
+        subtitle: "Swap the 6 interlocking chapter frames into curatorial order 1 to 6 for the Grand Unveiling.",
+        mechanic: "Grand Salon Curatorial Hang",
+        instructions: "Click any two gilded frames on the Grand Salon wall to swap their places until all 6 Chapter Masterpieces hang in chronological order: Frame 1 → Frame 2 → Frame 3 → Frame 4 → Frame 5 → Frame 6.",
+        hint: "Arrange the frames so I. Pigment is #1, II. Origami is #2, III. Kintsugi is #3, IV. Glass is #4, V. Shibori is #5, and VI. Mandala is #6.",
+        giftIcon: "👑",
+        giftTitle: "Anamika's Bespoke Engraved Brass Atelier Master Trunk",
+        giftNote: "The Grand Finale Heirloom Trunk — custom-fitted French sketchbox easel engraved with Anamika's name and filled with all 30 artisan treasures."
+      }
+    ];
+
+    // =========================================================================
+    // STATE & PERSISTENCE (Wrapped safely in try/catch for Canvas)
+    // =========================================================================
+    const STORAGE_KEY = "anamika_30_gifts_atelier_v1";
+    let appState = {
+      currentStage: 1,
+      unlocked: {}, // { 1: true, ... }
+      soundEnabled: true
+    };
+
+    function loadProgress() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === "object") {
+            appState.currentStage = parsed.currentStage || 1;
+            appState.unlocked = parsed.unlocked || {};
+            if (typeof parsed.soundEnabled === "boolean") {
+              appState.soundEnabled = parsed.soundEnabled;
+            }
+          }
+        }
+      } catch (e) {
+        // Ignore storage restrictions in sandboxed iframes
+      }
+    }
+
+    function saveProgress() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (e) {
+        // Ignore storage restrictions
+      }
+    }
+
+    // =========================================================================
+    // SYNTHESIZED WEB AUDIO API SOUND EFFECTS
+    // =========================================================================
+    let audioCtx = null;
+    function getAudioCtx() {
+      if (!appState.soundEnabled) return null;
+      try {
+        if (!audioCtx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) audioCtx = new AudioContextClass();
+        }
+        if (audioCtx && audioCtx.state === "suspended") {
+          audioCtx.resume();
+        }
+        return audioCtx;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function playTone(freq = 520, duration = 0.1, type = "sine", gainVal = 0.08) {
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      try {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        gain.gain.setValueAtTime(gainVal, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function playUnlockFanfare() {
+      const notes = [523.25, 659.25, 783.99, 1046.5];
+      notes.forEach((n, idx) => {
+        setTimeout(() => playTone(n, 0.22, "triangle", 0.11), idx * 90);
+      });
+    }
+
+    // =========================================================================
+    // CONFETTI ANIMATION
+    // =========================================================================
+    let confettiParticles = [];
+    let confettiAnimId = null;
+
+    function launchConfetti() {
+      const canvas = document.getElementById("confetti-canvas");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      const colors = ["#C85A32", "#D4AF37", "#283655", "#4A6B5D", "#E8998D", "#F4D35E"];
+      confettiParticles = [];
+      for (let i = 0; i < 85; i++) {
+        confettiParticles.push({
+          x: canvas.width / 2 + (Math.random() - 0.5) * 180,
+          y: canvas.height / 2 - 40,
+          vx: (Math.random() - 0.5) * 13,
+          vy: -Math.random() * 12 - 4,
+          size: Math.random() * 8 + 5,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rot: Math.random() * Math.PI * 2,
+          vrot: (Math.random() - 0.5) * 0.2,
+          life: 1.0
+        });
+      }
+      if (confettiAnimId) cancelAnimationFrame(confettiAnimId);
+      function frame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let alive = false;
+        confettiParticles.forEach(p => {
+          if (p.life <= 0) return;
+          alive = true;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.32;
+          p.rot += p.vrot;
+          p.life -= 0.014;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot);
+          ctx.globalAlpha = Math.max(0, p.life);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.65);
+          ctx.restore();
+        });
+        if (alive) {
+          confettiAnimId = requestAnimationFrame(frame);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+      confettiAnimId = requestAnimationFrame(frame);
+    }
+
+    // =========================================================================
+    // NAVIGATION & HEADER RENDERERS
+    // =========================================================================
+    function getUnlockedCount() {
+      return Object.keys(appState.unlocked).filter(k => appState.unlocked[k]).length;
+    }
+
+    function updateChrome() {
+      const count = getUnlockedCount();
+      const pct = Math.round((count / 30) * 100);
+      document.getElementById("header-progress-count").textContent = `${count} / 30`;
+      document.getElementById("header-progress-bar").style.width = `${pct}%`;
+      document.getElementById("vault-badge").textContent = String(count);
+      document.getElementById("map-summary-text").textContent = `${count}/30 Done`;
+
+      const station = STATIONS[appState.currentStage - 1];
+      const chap = CHAPTERS.find(c => c.id === station.chapter);
+
+      // Chapter tabs
+      const chapContainer = document.getElementById("chapter-tabs");
+      chapContainer.innerHTML = "";
+      CHAPTERS.forEach(c => {
+        const isCurrent = c.id === station.chapter;
+        let doneInChap = 0;
+        for (let s = c.range[0]; s <= c.range[1]; s++) {
+          if (appState.unlocked[s]) doneInChap++;
+        }
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `atelier-pill px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap flex items-center gap-1.5 border ${
+          isCurrent
+            ? "bg-[#C85A32] text-white border-[#C85A32] shadow-sm"
+            : "bg-white text-[#231F20] border-[#E5DEC9] hover:bg-[#EFE9DC]"
+        }`;
+        btn.innerHTML = `<span>Chapter ${c.roman}: ${c.name}</span><span class="px-1.5 py-0.2 rounded-full text-[10px] ${
+          isCurrent ? "bg-white/20 text-white" : "bg-[#F6F0E4] text-[#6E5D4F]"
+        }">${doneInChap}/5</span>`;
+        btn.addEventListener("click", () => {
+          playTone(440, 0.06);
+          goToStage(c.range[0]);
+        });
+        chapContainer.appendChild(btn);
+      });
+
+      // Puzzle pills for current chapter
+      const pillsContainer = document.getElementById("puzzle-pills");
+      pillsContainer.innerHTML = "";
+      for (let s = chap.range[0]; s <= chap.range[1]; s++) {
+        const st = STATIONS[s - 1];
+        const active = s === appState.currentStage;
+        const solved = !!appState.unlocked[s];
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `atelier-pill px-3 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 border ${
+          active
+            ? "bg-[#283655] text-white border-[#283655]"
+            : solved
+            ? "bg-[#4A6B5D]/15 text-[#2E473B] border-[#4A6B5D]/40"
+            : "bg-white text-[#5C5346] border-[#E5DEC9] hover:bg-[#EFE9DC]"
+        }`;
+        btn.innerHTML = `<span>#${s} ${st.title}</span><span>${solved ? "✓" : ""}</span>`;
+        btn.addEventListener("click", () => {
+          playTone(500, 0.06);
+          goToStage(s);
+        });
+        pillsContainer.appendChild(btn);
+      }
+
+      // Stage Header Info
+      document.getElementById("stage-badge").textContent = `Station #${station.id} of 30`;
+      document.getElementById("stage-chapter-label").textContent = `Chapter ${chap.roman} • ${chap.name}`;
+      const isSolved = !!appState.unlocked[station.id];
+      const statusPill = document.getElementById("stage-status-pill");
+      if (isSolved) {
+        statusPill.textContent = "✓ Gift Unlocked";
+        statusPill.className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#4A6B5D]/15 text-[#2E473B] border border-[#4A6B5D]/30";
+      } else {
+        statusPill.textContent = "In Studio Progress";
+        statusPill.className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#F6F0E4] text-[#6E5D4F]";
+      }
+
+      document.getElementById("stage-title").textContent = `${station.id}. ${station.title}`;
+      document.getElementById("stage-subtitle").textContent = station.subtitle;
+      document.getElementById("aside-instructions").textContent = station.instructions;
+      document.getElementById("aside-mechanic-tag").textContent = station.mechanic;
+      document.getElementById("hint-text").textContent = station.hint;
+
+      // Aside Gift Card
+      document.getElementById("aside-gift-number").textContent = `Gift #${station.id}`;
+      const asideCard = document.getElementById("aside-gift-card");
+      if (isSolved) {
+        asideCard.innerHTML = `
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#C85A32] to-[#D4AF37] text-white flex items-center justify-center text-2xl shadow">
+            ${station.giftIcon}
+          </div>
+          <div class="text-xs font-bold uppercase tracking-wider text-[#4A6B5D]">Unsealed &amp; Collected</div>
+          <div class="font-serif-atelier text-lg font-bold text-[#231F20]">${station.giftTitle}</div>
+          <p class="text-xs text-[#5C5346] italic">"${station.giftNote}"</p>
+        `;
+      } else {
+        asideCard.innerHTML = `
+          <div class="w-12 h-12 rounded-xl bg-[#EFE9DC] text-[#8C7A6B] flex items-center justify-center text-2xl border border-[#E5DEC9]">
+            🔒
+          </div>
+          <div class="text-xs font-bold uppercase tracking-wider text-[#8C7A6B]">Wax-Sealed Keepsake</div>
+          <div class="font-serif-atelier text-base font-bold text-[#5C5346]">Complete Station #${station.id} to Unseal</div>
+          <p class="text-xs text-[#8C7A6B]">Finish the tactile craft on the workbench to reveal Anamika's Gift #${station.id}.</p>
+        `;
+      }
+
+      // 30-Station Mini Grid
+      const miniGrid = document.getElementById("mini-grid-30");
+      miniGrid.innerHTML = "";
+      STATIONS.forEach(st => {
+        const solvedSt = !!appState.unlocked[st.id];
+        const currSt = st.id === appState.currentStage;
+        const b = document.createElement("button");
+        b.type = "button";
+        b.title = `#${st.id}: ${st.title}`;
+        b.className = `h-8 rounded-lg text-xs font-bold flex items-center justify-center border transition-all ${
+          currSt
+            ? "bg-[#283655] text-white border-[#283655] ring-2 ring-[#D4AF37]"
+            : solvedSt
+            ? "bg-[#4A6B5D] text-white border-[#4A6B5D]"
+            : "bg-[#FDFBF7] text-[#5C5346] border-[#E5DEC9] hover:bg-[#F6F0E4]"
+        }`;
+        b.textContent = solvedSt ? "✓" : String(st.id);
+        b.addEventListener("click", () => {
+          playTone(480, 0.05);
+          goToStage(st.id);
+        });
+        miniGrid.appendChild(b);
+      });
+    }
+
+    function completeCurrentStage(summaryMsg) {
+      const id = appState.currentStage;
+      const station = STATIONS[id - 1];
+      appState.unlocked[id] = true;
+      saveProgress();
+      updateChrome();
+      playUnlockFanfare();
+      launchConfetti();
+
+      document.getElementById("modal-gift-icon").textContent = station.giftIcon;
+      document.getElementById("modal-gift-label").textContent = `Gift #${station.id} of 30 Unsealed!`;
+      document.getElementById("modal-gift-title").textContent = station.giftTitle;
+      document.getElementById("modal-gift-note").textContent = `"${station.giftNote}"`;
+      document.getElementById("modal-craft-summary").textContent =
+        summaryMsg || `Station #${station.id} (${station.title}) mastered!`;
+      document.getElementById("unlock-modal").classList.remove("hidden");
+    }
+
+    function goToStage(stageNum) {
+      const clamped = Math.max(1, Math.min(30, stageNum));
+      appState.currentStage = clamped;
+      saveProgress();
+      document.getElementById("hint-box").classList.add("hidden");
+      updateChrome();
+      renderCurrentStage();
+    }
+
+    // =========================================================================
+    // ALL 30 INTERACTIVE NON-Q&A PUZZLE MECHANICS
+    // =========================================================================
+    let currentAutoSolveFn = null;
+
+    function renderCurrentStage() {
+      const mount = document.getElementById("workbench-mount");
+      mount.innerHTML = "";
+      currentAutoSolveFn = null;
+      const s = appState.currentStage;
+      const builders = {
+        1: buildStage1,
+        2: buildStage2,
+        3: buildStage3,
+        4: buildStage4,
+        5: buildStage5,
+        6: buildStage6,
+        7: buildStage7,
+        8: buildStage8,
+        9: buildStage9,
+        10: buildStage10,
+        11: buildStage11,
+        12: buildStage12,
+        13: buildStage13,
+        14: buildStage14,
+        15: buildStage15,
+        16: buildStage16,
+        17: buildStage17,
+        18: buildStage18,
+        19: buildStage19,
+        20: buildStage20,
+        21: buildStage21,
+        22: buildStage22,
+        23: buildStage23,
+        24: buildStage24,
+        25: buildStage25,
+        26: buildStage26,
+        27: buildStage27,
+        28: buildStage28,
+        29: buildStage29,
+        30: buildStage30
+      };
+      if (builders[s]) builders[s](mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 1. Color Palette Mixing (blend Red, Yellow, Blue, White drops -> Sunset Terracotta)
+    // Target: 3 Red, 2 Yellow, 0 Blue, 1 White (or exact RGB match)
+    // -------------------------------------------------------------------------
+    function buildStage1(mount) {
+      let drops = { r: 0, y: 0, b: 0, w: 0 };
+      const target = { r: 3, y: 2, b: 0, w: 1 };
+
+      function computeRGB(d) {
+        const total = d.r + d.y + d.b + d.w;
+        if (total === 0) return { r: 245, g: 240, b: 230 };
+        // Pigment primaries:
+        // Red: (200, 45, 35), Yellow: (235, 175, 35), Blue: (35, 75, 170), White: (250, 246, 240)
+        const r = Math.round((d.r * 200 + d.y * 235 + d.b * 35 + d.w * 250) / total);
+        const g = Math.round((d.r * 45 + d.y * 175 + d.b * 75 + d.w * 246) / total);
+        const b = Math.round((d.r * 35 + d.y * 35 + d.b * 170 + d.w * 240) / total);
+        return { r, g, b };
+      }
+
+      const targetRGB = computeRGB(target);
+
+      function render() {
+        const curRGB = computeRGB(drops);
+        const total = drops.r + drops.y + drops.b + drops.w;
+        const dist = Math.sqrt(
+          Math.pow(curRGB.r - targetRGB.r, 2) +
+          Math.pow(curRGB.g - targetRGB.g, 2) +
+          Math.pow(curRGB.b - targetRGB.b, 2)
+        );
+        const matchPct = total === 0 ? 0 : Math.max(0, Math.min(100, Math.round(100 - dist * 0.85)));
+        const isExactRatio =
+          total > 0 &&
+          drops.b === 0 &&
+          drops.r * 2 === drops.y * 3 &&
+          drops.y === drops.w * 2;
+
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col items-center gap-5">
+            <div class="grid grid-cols-2 gap-4 w-full">
+              <div class="p-4 rounded-2xl bg-white border border-[#E5DEC9] flex flex-col items-center gap-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-[#6E5D4F]">Target Swatch</span>
+                <div class="w-24 h-24 rounded-full border-4 border-white shadow-md" style="background: rgb(${targetRGB.r}, ${targetRGB.g}, ${targetRGB.b})"></div>
+                <span class="font-serif-atelier font-bold text-lg">Sunset Terracotta</span>
+                <span class="text-[11px] text-[#6E5D4F] bg-[#F6F0E4] px-2.5 py-0.5 rounded-full">Formula: 3 Red • 2 Yellow • 0 Blue • 1 White</span>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-white border border-[#E5DEC9] flex flex-col items-center gap-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-[#6E5D4F]">Your Mixing Well</span>
+                <div class="w-24 h-24 rounded-full border-4 border-white shadow-md transition-colors duration-300 flex items-center justify-center text-xs font-bold text-white" style="background: rgb(${curRGB.r}, ${curRGB.g}, ${curRGB.b})">
+                  ${total === 0 ? '<span class="text-[#8C7A6B]">Empty Well</span>' : `${ isExactRatio ? '100%' : matchPct + '%' }`}
+                </div>
+                <span class="font-serif-atelier font-bold text-lg">Current Blend (${total} drops)</span>
+                <span class="text-[11px] text-[#6E5D4F] bg-[#F6F0E4] px-2.5 py-0.5 rounded-full">
+                  R:${drops.r} • Y:${drops.y} • B:${drops.b} • W:${drops.w}
+                </span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full">
+              <button type="button" data-drop="r" class="drop-btn atelier-btn p-3 rounded-xl bg-[#C82D23] text-white font-semibold text-xs flex flex-col items-center gap-1 shadow">
+                <span class="text-lg">💧 +1 Crimson Red</span>
+                <span class="opacity-85">Drops: ${drops.r}</span>
+              </button>
+              <button type="button" data-drop="y" class="drop-btn atelier-btn p-3 rounded-xl bg-[#E0A91B] text-white font-semibold text-xs flex flex-col items-center gap-1 shadow">
+                <span class="text-lg">💧 +1 Ochre Yellow</span>
+                <span class="opacity-85">Drops: ${drops.y}</span>
+              </button>
+              <button type="button" data-drop="b" class="drop-btn atelier-btn p-3 rounded-xl bg-[#234B9E] text-white font-semibold text-xs flex flex-col items-center gap-1 shadow">
+                <span class="text-lg">💧 +1 Cobalt Blue</span>
+                <span class="opacity-85">Drops: ${drops.b}</span>
+              </button>
+              <button type="button" data-drop="w" class="drop-btn atelier-btn p-3 rounded-xl bg-[#F5F0E6] text-[#231F20] border border-[#D4C8B0] font-semibold text-xs flex flex-col items-center gap-1 shadow-sm">
+                <span class="text-lg">💧 +1 Titanium White</span>
+                <span class="opacity-80">Drops: ${drops.w}</span>
+              </button>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <button type="button" id="s1-clear" class="atelier-btn px-4 py-2 rounded-xl border border-[#E5DEC9] bg-white text-xs font-semibold">
+                Wipe Palette Bowl
+              </button>
+              <button type="button" id="s1-verify" class="atelier-btn px-5 py-2.5 rounded-xl bg-[#C85A32] text-white text-xs sm:text-sm font-semibold shadow">
+                🎨 Stir &amp; Test Swatch Match
+              </button>
+            </div>
+            <div id="s1-feedback" class="text-xs font-semibold text-[#C85A32] h-4"></div>
+          </div>
+        `;
+
+        mount.querySelectorAll(".drop-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const k = btn.getAttribute("data-drop");
+            drops[k]++;
+            playTone(460 + drops[k] * 30, 0.07);
+            render();
+          });
+        });
+
+        mount.querySelector("#s1-clear").addEventListener("click", () => {
+          drops = { r: 0, y: 0, b: 0, w: 0 };
+          playTone(300, 0.08);
+          render();
+        });
+
+        mount.querySelector("#s1-verify").addEventListener("click", () => {
+          if (isExactRatio || (total >= 4 && dist <= 12)) {
+            completeCurrentStage("Sunset Terracotta (3 Crimson Red : 2 Ochre Yellow : 1 Titanium White) blended!");
+          } else {
+            playTone(220, 0.15, "sawtooth");
+            mount.querySelector("#s1-feedback").textContent =
+              "Not quite Sunset Terracotta yet! Try wiping the bowl and adding 3 Red, 2 Yellow, 0 Blue, and 1 White.";
+          }
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        drops = { r: 3, y: 2, b: 0, w: 1 };
+        render();
+        completeCurrentStage("Sunset Terracotta blended to perfection!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 2. Charcoal Eraser (rub digital charcoal dust to reveal 3 hidden brushes)
+    // -------------------------------------------------------------------------
+    function buildStage2(mount) {
+      let clearedPct = 0;
+      let completed = false;
+
+      mount.innerHTML = `
+        <div class="w-full max-w-xl flex flex-col items-center gap-4">
+          <div class="text-xs font-semibold text-[#5C5346] flex items-center justify-between w-full px-1">
+            <span>Rub your cursor/finger across the charcoal canvas (or click Sweep Kneaded Eraser):</span>
+            <span id="s2-pct" class="font-bold text-[#C85A32]">0% Dusted</span>
+          </div>
+
+          <div class="relative w-full h-64 rounded-2xl overflow-hidden border-2 border-[#D4C8B0] shadow-inner bg-[#F9F3E6] select-none">
+            <!-- Underlying Hidden Golden Brushes -->
+            <div class="absolute inset-0 grid grid-cols-3 gap-3 p-4 items-center justify-items-center">
+              <div class="flex flex-col items-center text-center p-2 rounded-xl bg-white/90 border border-[#D4AF37] shadow-sm">
+                <span class="text-3xl">🖌️</span>
+                <span class="text-xs font-bold text-[#231F20] mt-1">Kolinsky Round #0</span>
+                <span class="text-[10px] text-[#4A6B5D] font-semibold">Fine Detail</span>
+              </div>
+              <div class="flex flex-col items-center text-center p-2 rounded-xl bg-white/90 border border-[#D4AF37] shadow-sm">
+                <span class="text-3xl">🧹</span>
+                <span class="text-xs font-bold text-[#231F20] mt-1">Flat Hog Bristle</span>
+                <span class="text-[10px] text-[#4A6B5D] font-semibold">Impasto Wash</span>
+              </div>
+              <div class="flex flex-col items-center text-center p-2 rounded-xl bg-white/90 border border-[#D4AF37] shadow-sm">
+                <span class="text-3xl">🪭</span>
+                <span class="text-xs font-bold text-[#231F20] mt-1">Gilded Fan Blender</span>
+                <span class="text-[10px] text-[#4A6B5D] font-semibold">Soft Feathering</span>
+              </div>
+            </div>
+
+            <!-- Interactive Charcoal Overlay Canvas -->
+            <canvas id="s2-canvas" width="540" height="256" class="absolute inset-0 w-full h-full cursor-crosshair touch-none"></canvas>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <button type="button" id="s2-sweep" class="atelier-btn px-4 py-2 rounded-xl bg-[#283655] text-white text-xs font-semibold shadow-sm">
+              🧼 Sweep Kneaded Eraser (+25% Rub)
+            </button>
+          </div>
+        </div>
+      `;
+
+      const canvas = mount.querySelector("#s2-canvas");
+      const ctx = canvas.getContext("2d");
+
+      // Paint textured charcoal layer
+      ctx.fillStyle = "#2B2927";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < 900; i++) {
+        ctx.fillStyle = i % 2 === 0 ? "#3A3734" : "#1F1D1B";
+        ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, 4, 2);
+      }
+      ctx.fillStyle = "#BFB6A8";
+      ctx.font = "600 15px Inter, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("✨ Rub Kneaded Eraser Here to Uncover 3 Hidden Brushes ✨", canvas.width / 2, canvas.height / 2);
+
+      let isDrawing = false;
+
+      function eraseAt(x, y, radius = 34) {
+        ctx.save();
+        ctx.globalCompositeOperation = "destination-out";
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        measureCleared();
+      }
+
+      function measureCleared() {
+        if (completed) return;
+        const img = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        let transparent = 0;
+        const step = 16;
+        let totalSampled = 0;
+        for (let i = 3; i < img.length; i += 4 * step) {
+          totalSampled++;
+          if (img[i] < 128) transparent++;
+        }
+        clearedPct = Math.min(100, Math.round((transparent / totalSampled) * 100));
+        const label = mount.querySelector("#s2-pct");
+        if (label) label.textContent = `${clearedPct}% Dusted`;
+        if (clearedPct >= 58 && !completed) {
+          completed = true;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          if (label) label.textContent = `100% Dusted — All 3 Brushes Found!`;
+          completeCurrentStage("Vine charcoal dust rubbed away to reveal all 3 Golden Atelier Brushes!");
+        }
+      }
+
+      function handlePointer(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const x = ((clientX - rect.left) / rect.width) * canvas.width;
+        const y = ((clientY - rect.top) / rect.height) * canvas.height;
+        eraseAt(x, y, 36);
+      }
+
+      canvas.addEventListener("mousedown", e => { isDrawing = true; handlePointer(e); });
+      canvas.addEventListener("mousemove", e => { if (isDrawing) handlePointer(e); });
+      window.addEventListener("mouseup", () => { isDrawing = false; });
+      canvas.addEventListener("touchstart", e => { isDrawing = true; handlePointer(e); e.preventDefault(); }, { passive: false });
+      canvas.addEventListener("touchmove", e => { if (isDrawing) handlePointer(e); e.preventDefault(); }, { passive: false });
+
+      mount.querySelector("#s2-sweep").addEventListener("click", () => {
+        playTone(540, 0.06);
+        for (let i = 0; i < 8; i++) {
+          eraseAt(70 + Math.random() * 400, 40 + Math.random() * 175, 48);
+        }
+      });
+
+      currentAutoSolveFn = () => {
+        completed = true;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        completeCurrentStage("All 3 hidden brushes uncovered from beneath the charcoal layer!");
+      };
+    }
+
+    // -------------------------------------------------------------------------
+    // 3. Pantograph Mirror Maze (horizontally mirrored left/right stylus maze)
+    // -------------------------------------------------------------------------
+    function buildStage3(mount) {
+      // 5x5 grid. Start at (0, 2), Goal at (4, 2) on the Mirrored Right Plate.
+      // Obstacles on Mirrored Plate: (1,2), (2,0), (2,4), (3,2)
+      const walls = new Set(["1,2", "2,0", "2,4", "3,2"]);
+      let pos = { r: 0, c: 2 }; // Position on the Mirrored Plate
+      let msg = "Use the Master Stylus buttons below. Remember: Left & Right are horizontally mirrored!";
+
+      function moveMaster(dr, dcMaster) {
+        // Horizontal movement is mirrored: dcMirrored = -dcMaster
+        const nr = pos.r + dr;
+        const nc = pos.c - dcMaster;
+        if (nr < 0 || nr > 4 || nc < 0 || nc > 4) {
+          playTone(220, 0.1, "sawtooth");
+          msg = "Reached the brass frame edge!";
+          render();
+          return;
+        }
+        if (walls.has(`${nr},${nc}`)) {
+          playTone(200, 0.12, "sawtooth");
+          msg = "Clink! Copper clamp block at that cell — steer around it!";
+          render();
+          return;
+        }
+        pos = { r: nr, c: nc };
+        playTone(520 + nr * 40, 0.06);
+        msg = `Mirrored Engraving Nib moved to Row ${nr + 1}, Col ${nc + 1}.`;
+        render();
+        if (pos.r === 4 && pos.c === 2) {
+          completeCurrentStage("Pantograph mirror maze engraved cleanly to the Star Nib!");
+        }
+      }
+
+      function renderGrid(isMirroredPlate) {
+        let html = `<div class="grid grid-cols-5 gap-1.5 p-2.5 bg-[#F6F0E4] rounded-xl border border-[#D4C8B0]">`;
+        for (let r = 0; r < 5; r++) {
+          for (let c = 0; c < 5; c++) {
+            const displayC = isMirroredPlate ? c : 4 - c;
+            const isNib = pos.r === r && pos.c === displayC;
+            const isGoal = r === 4 && displayC === 2;
+            const isWall = walls.has(`${r},${displayC}`);
+            let cellStyle = "bg-white border-[#E5DEC9] text-[#5C5346]";
+            let label = "";
+            if (isWall) {
+              cellStyle = "bg-[#5C5346] text-white border-[#3E372E]";
+              label = "🔩";
+            } else if (isNib) {
+              cellStyle = "bg-[#C85A32] text-white border-[#C85A32] ring-2 ring-[#D4AF37]";
+              label = "✒️";
+            } else if (isGoal) {
+              cellStyle = "bg-[#D4AF37]/25 text-[#6E5111] border-[#D4AF37]";
+              label = "⭐";
+            }
+            html += `<div class="w-10 h-10 sm:w-11 sm:h-11 rounded-lg border flex items-center justify-center text-sm font-bold ${cellStyle}">${label}</div>`;
+          }
+        }
+        html += `</div>`;
+        return html;
+      }
+
+      function render() {
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col items-center gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full justify-items-center">
+              <div class="flex flex-col items-center gap-1.5">
+                <span class="text-xs font-bold uppercase tracking-wider text-[#6E5D4F]">Left: Master Stylus Plate</span>
+                ${renderGrid(false)}
+              </div>
+              <div class="flex flex-col items-center gap-1.5">
+                <span class="text-xs font-bold uppercase tracking-wider text-[#C85A32]">Right: Mirrored Engraving Plate</span>
+                ${renderGrid(true)}
+              </div>
+            </div>
+
+            <div class="text-xs font-medium text-[#283655] bg-[#283655]/10 px-3 py-1.5 rounded-lg text-center">
+              ${msg}
+            </div>
+
+            <div class="flex items-center gap-2 flex-wrap justify-center">
+              <button type="button" data-dir="-1,0" class="panto-btn atelier-btn px-3.5 py-2 rounded-xl bg-white border border-[#D4C8B0] text-xs font-bold">↑ Up</button>
+              <button type="button" data-dir="1,0" class="panto-btn atelier-btn px-3.5 py-2 rounded-xl bg-white border border-[#D4C8B0] text-xs font-bold">↓ Down</button>
+              <button type="button" data-dir="0,-1" class="panto-btn atelier-btn px-3.5 py-2 rounded-xl bg-[#283655] text-white text-xs font-bold">← Master Left (Mirrors Right →)</button>
+              <button type="button" data-dir="0,1" class="panto-btn atelier-btn px-3.5 py-2 rounded-xl bg-[#283655] text-white text-xs font-bold">Master Right → (← Mirrors Left)</button>
+            </div>
+          </div>
+        `;
+
+        mount.querySelectorAll(".panto-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const [dr, dc] = btn.getAttribute("data-dir").split(",").map(Number);
+            moveMaster(dr, dc);
+          });
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        pos = { r: 4, c: 2 };
+        render();
+        completeCurrentStage("Pantograph mirror linkage guided to the Star Nib!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 4. Symmetrical Inkblot (paint left half of 4x3 grid and fold to match butterfly)
+    // -------------------------------------------------------------------------
+    function buildStage4(mount) {
+      // 4 rows x 3 cols on Left Half.
+      // When folded across the spine, Left col 0 mirrors to Right col 2, Left col 1 -> Right col 1, Left col 2 -> Right col 0.
+      // Let's specify the exact target on the Left 4x3 grid and display its mirrored twin on the Right 4x3 grid!
+      const targetLeft = [
+        [1, 0, 1],
+        [1, 1, 1],
+        [0, 1, 1],
+        [0, 0, 1]
+      ];
+      let userLeft = [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0]
+      ];
+
+      function render() {
+        let leftHtml = "";
+        let rightHtml = "";
+        for (let r = 0; r < 4; r++) {
+          for (let c = 0; c < 3; c++) {
+            const active = userLeft[r][c] === 1;
+            leftHtml += `
+              <button type="button" data-r="${r}" data-c="${c}" class="ink-cell w-12 h-12 rounded-lg border transition-all flex items-center justify-center ${
+                active ? "bg-[#231F20] text-white border-[#231F20]" : "bg-white hover:bg-[#F6F0E4] border-[#D4C8B0]"
+              }">
+                ${active ? "🖤" : ""}
+              </button>
+            `;
+          }
+          for (let rc = 0; rc < 3; rc++) {
+            // Right col rc is the mirror of Left col (2 - rc)
+            const mirrorNeed = targetLeft[r][2 - rc] === 1;
+            const userMirrored = userLeft[r][2 - rc] === 1;
+            rightHtml += `
+              <div class="w-12 h-12 rounded-lg border flex items-center justify-center ${
+                mirrorNeed
+                  ? userMirrored
+                    ? "bg-[#C85A32] text-white border-[#C85A32]"
+                    : "bg-[#C85A32]/20 text-[#C85A32] border-[#C85A32] border-dashed"
+                  : "bg-[#F6F0E4]/60 border-[#E5DEC9]"
+              }">
+                ${mirrorNeed ? "🦋" : ""}
+              </div>
+            `;
+          }
+        }
+
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col items-center gap-4">
+            <div class="flex items-center gap-3 sm:gap-5 p-4 rounded-2xl bg-white border border-[#E5DEC9] shadow-sm">
+              <div class="flex flex-col items-center gap-1.5">
+                <span class="text-xs font-bold uppercase tracking-wider text-[#231F20]">Left Wing (Click to Ink)</span>
+                <div class="grid grid-cols-3 gap-1.5">${leftHtml}</div>
+              </div>
+
+              <!-- Center Fold Crease -->
+              <div class="h-52 w-1 border-l-2 border-dashed border-[#C85A32] flex flex-col items-center justify-center">
+                <span class="bg-[#FDFBF7] px-1 text-[10px] font-bold text-[#C85A32] rotate-90 whitespace-nowrap">FOLD CREASE</span>
+              </div>
+
+              <div class="flex flex-col items-center gap-1.5">
+                <span class="text-xs font-bold uppercase tracking-wider text-[#C85A32]">Right Target Butterfly</span>
+                <div class="grid grid-cols-3 gap-1.5">${rightHtml}</div>
+              </div>
+            </div>
+
+            <button type="button" id="s4-fold" class="atelier-btn px-5 py-2.5 rounded-xl bg-[#C85A32] text-white text-xs sm:text-sm font-semibold shadow">
+              🦋 Fold &amp; Press Symmetrical Inkblot
+            </button>
+            <div id="s4-msg" class="text-xs font-semibold text-[#C85A32] h-4"></div>
+          </div>
+        `;
+
+        mount.querySelectorAll(".ink-cell").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const r = Number(btn.getAttribute("data-r"));
+            const c = Number(btn.getAttribute("data-c"));
+            userLeft[r][c] = userLeft[r][c] ? 0 : 1;
+            playTone(420 + (r * 3 + c) * 25, 0.06);
+            render();
+          });
+        });
+
+        mount.querySelector("#s4-fold").addEventListener("click", () => {
+          let match = true;
+          for (let r = 0; r < 4; r++) {
+            for (let c = 0; c < 3; c++) {
+              if (userLeft[r][c] !== targetLeft[r][c]) match = false;
+            }
+          }
+          if (match) {
+            completeCurrentStage("Rorschach parchment folded! Symmetrical Monarch Butterfly inkblot achieved.");
+          } else {
+            playTone(220, 0.14, "sawtooth");
+            mount.querySelector("#s4-msg").textContent =
+              "Some ink cells don't mirror the dashed butterfly outline yet — check which right-side cells are still pale!";
+          }
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        userLeft = targetLeft.map(row => [...row]);
+        render();
+        completeCurrentStage("Symmetrical Monarch Butterfly inkblot pressed and unsealed!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 5. Calligraphy Ink Spill (trace 7 sequential calligraphy nib nodes)
+    // -------------------------------------------------------------------------
+    function buildStage5(mount) {
+      const nodes = [
+        { id: 1, x: 60, y: 170 },
+        { id: 2, x: 135, y: 75 },
+        { id: 3, x: 220, y: 165 },
+        { id: 4, x: 290, y: 65 },
+        { id: 5, x: 375, y: 160 },
+        { id: 6, x: 445, y: 80 },
+        { id: 7, x: 500, y: 135 }
+      ];
+      let progress = 0; // 0..7
+
+      function render() {
+        let linesSvg = "";
+        for (let i = 0; i < nodes.length - 1; i++) {
+          const a = nodes[i];
+          const b = nodes[i + 1];
+          const done = progress > i + 1;
+          linesSvg += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="${
+            done ? "#C85A32" : "#D4C8B0"
+          }" stroke-width="${done ? 5 : 2}" stroke-dasharray="${done ? "none" : "5,5"}" stroke-linecap="round" />`;
+        }
+
+        let circlesHtml = "";
+        nodes.forEach((n, idx) => {
+          const isDone = progress >= n.id;
+          const isNext = progress + 1 === n.id;
+          circlesHtml += `
+            <button type="button" data-node="${n.id}" style="left:${(n.x / 560) * 100}%; top:${(n.y / 230) * 100}%;"
+              class="nib-node -translate-x-1/2 -translate-y-1/2 absolute w-10 h-10 rounded-full font-bold text-xs flex items-center justify-center transition-all shadow ${
+                isDone
+                  ? "bg-[#C85A32] text-white border-2 border-white"
+                  : isNext
+                  ? "bg-[#D4AF37] text-[#231F20] border-2 border-[#231F20] scale-110 glow-gold"
+                  : "bg-white text-[#5C5346] border-2 border-[#D4C8B0]"
+              }">
+              ${isDone ? "✓" : n.id}
+            </button>
+          `;
+        });
+
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col items-center gap-4">
+            <div class="text-xs font-semibold text-[#5C5346]">
+              Click Nib Node <span class="font-bold text-[#C85A32]">#${Math.min(7, progress + 1)}</span> next to ink the copperplate flourish (${progress}/7 nodes traced)
+            </div>
+            <div class="relative w-full h-60 bg-[#FAF5EA] rounded-2xl border border-[#D4C8B0] overflow-hidden shadow-inner">
+              <svg viewBox="0 0 560 230" class="w-full h-full">
+                ${linesSvg}
+              </svg>
+              ${circlesHtml}
+            </div>
+          </div>
+        `;
+
+        mount.querySelectorAll(".nib-node").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const id = Number(btn.getAttribute("data-node"));
+            if (id === progress + 1) {
+              progress = id;
+              playTone(440 + id * 45, 0.08);
+              render();
+              if (progress === 7) {
+                completeCurrentStage("All 7 Copperplate Calligraphy nib nodes traced in one unbroken flourish!");
+              }
+            } else if (id <= progress) {
+              playTone(500, 0.05);
+            } else {
+              playTone(220, 0.12, "sawtooth");
+            }
+          });
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        progress = 7;
+        render();
+        completeCurrentStage("Copperplate Calligraphy flourish traced across all 7 nib nodes!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 6. Color Gradient Sorter (swap 8 scrambled swatches into a seamless gradient)
+    // -------------------------------------------------------------------------
+    function buildStage6(mount) {
+      const palette = [
+        { rank: 1, hex: "#2D1B4E", name: "I. Twilight Plum" },
+        { rank: 2, hex: "#4E245E", name: "II. Mulberry Dusk" },
+        { rank: 3, hex: "#782E63", name: "III. Byzantium Berry" },
+        { rank: 4, hex: "#A33B5B", name: "IV. Crimson Rose" },
+        { rank: 5, hex: "#C85A32", name: "V. Sunset Terracotta" },
+        { rank: 6, hex: "#DF7F38", name: "VI. Amber Marigold" },
+        { rank: 7, hex: "#F0A85C", name: "VII. Honey Apricot" },
+        { rank: 8, hex: "#FFD1B3", name: "VIII. Peach Dawn" }
+      ];
+      let order = [palette[3], palette[0], palette[6], palette[2], palette[7], palette[1], palette[4], palette[5]];
+      let selectedIdx = null;
+
+      function isSorted() {
+        return order.every((item, idx) => item.rank === idx + 1);
+      }
+
+      function render() {
+        let cardsHtml = "";
+        order.forEach((sw, idx) => {
+          const isSel = selectedIdx === idx;
+          const isCorrectSlot = sw.rank === idx + 1;
+          cardsHtml += `
+            <button type="button" data-idx="${idx}" class="swatch-card atelier-btn flex flex-col items-center p-2 rounded-xl border-2 transition-all ${
+              isSel
+                ? "border-[#231F20] ring-2 ring-[#D4AF37] -translate-y-1.5 bg-white"
+                : isCorrectSlot
+                ? "border-[#4A6B5D]/50 bg-white"
+                : "border-[#E5DEC9] bg-white"
+            }">
+              <div class="w-full h-24 rounded-lg shadow-inner flex items-end justify-center pb-1.5" style="background:${sw.hex}">
+                <span class="px-1.5 py-0.5 rounded bg-black/45 text-white text-[10px] font-bold">#${sw.rank}</span>
+              </div>
+              <span class="text-[10px] font-semibold text-[#231F20] mt-1.5 text-center leading-tight">${sw.name}</span>
+            </button>
+          `;
+        });
+
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col items-center gap-4">
+            <div class="text-xs font-semibold text-[#5C5346]">
+              Click any two swatches to swap them until ordered <span class="font-bold text-[#C85A32]">#1 (Dark Plum) → #8 (Peach Dawn)</span>
+            </div>
+            <div class="grid grid-cols-4 sm:grid-cols-8 gap-2 w-full">
+              ${cardsHtml}
+            </div>
+          </div>
+        `;
+
+        mount.querySelectorAll(".swatch-card").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.getAttribute("data-idx"));
+            if (selectedIdx === null) {
+              selectedIdx = idx;
+              playTone(480, 0.05);
+              render();
+            } else if (selectedIdx === idx) {
+              selectedIdx = null;
+              render();
+            } else {
+              const temp = order[selectedIdx];
+              order[selectedIdx] = order[idx];
+              order[idx] = temp;
+              selectedIdx = null;
+              playTone(580, 0.07);
+              render();
+              if (isSorted()) {
+                completeCurrentStage("All 8 Lokta paper swatches arranged into a seamless sunset gradient!");
+              }
+            }
+          });
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        order = [...palette];
+        selectedIdx = null;
+        render();
+        completeCurrentStage("All 8 gradient swatches aligned from Twilight Plum to Peach Dawn!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 7. Paint by Numbers / Picross (5x5 nonogram grid forming a Heart)
+    // -------------------------------------------------------------------------
+    function buildStage7(mount) {
+      const target = [
+        [1, 1, 0, 1, 1],
+        [1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1],
+        [0, 1, 1, 1, 0],
+        [0, 0, 1, 0, 0]
+      ];
+      const rowClues = ["2  2", "5", "5", "3", "1"];
+      const colClues = ["2", "4", "4", "4", "2"];
+      let grid = Array.from({ length: 5 }, () => [0, 0, 0, 0, 0]);
+
+      function checkWin() {
+        for (let r = 0; r < 5; r++) {
+          for (let c = 0; c < 5; c++) {
+            if (grid[r][c] !== target[r][c]) return false;
+          }
+        }
+        return true;
+      }
+
+      function render() {
+        let colHeaderHtml = `<div class="w-12 h-8"></div>`;
+        colClues.forEach(cl => {
+          colHeaderHtml += `<div class="w-11 h-8 flex items-center justify-center text-xs font-bold text-[#283655] bg-[#F6F0E4] rounded-lg border border-[#E5DEC9]">${cl}</div>`;
+        });
+
+        let rowsHtml = "";
+        for (let r = 0; r < 5; r++) {
+          rowsHtml += `<div class="w-12 h-11 flex items-center justify-center text-xs font-bold text-[#283655] bg-[#F6F0E4] rounded-lg border border-[#E5DEC9]">${rowClues[r]}</div>`;
+          for (let c = 0; c < 5; c++) {
+            const on = grid[r][c] === 1;
+            rowsHtml += `
+              <button type="button" data-r="${r}" data-c="${c}" class="picross-cell w-11 h-11 rounded-lg border transition-all flex items-center justify-center text-base ${
+                on
+                  ? "bg-[#C85A32] text-white border-[#C85A32] shadow-sm"
+                  : "bg-white hover:bg-[#FAF5EA] border-[#D4C8B0]"
+              }">
+                ${on ? "♥" : ""}
+              </button>
+            `;
+          }
+        }
+
+        mount.innerHTML = `
+          <div class="w-full max-w-md flex flex-col items-center gap-4">
+            <div class="text-xs text-[#5C5346] text-center">
+              Click squares to paint with Rose Madder gouache until the row &amp; column counts form the 5×5 Heart.
+            </div>
+            <div class="grid grid-cols-6 gap-1.5 p-3 bg-white rounded-2xl border border-[#E5DEC9] shadow-sm">
+              ${colHeaderHtml}
+              ${rowsHtml}
+            </div>
+          </div>
+        `;
+
+        mount.querySelectorAll(".picross-cell").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const r = Number(btn.getAttribute("data-r"));
+            const c = Number(btn.getAttribute("data-c"));
+            grid[r][c] = grid[r][c] ? 0 : 1;
+            playTone(460 + (r * 5 + c) * 18, 0.05);
+            render();
+            if (checkWin()) {
+              completeCurrentStage("5×5 Nonogram Heart painted accurately from row and column clues!");
+            }
+          });
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        grid = target.map(r => [...r]);
+        render();
+        completeCurrentStage("5×5 Nonogram Heart completed!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 8. Scrapbook Layering Z-Index (reorder 5 scrapbook layers from bottom to top)
+    // -------------------------------------------------------------------------
+    function buildStage8(mount) {
+      // Bottom (z=1) to Top (z=5)
+      const correctOrder = [
+        { z: 1, name: "1. Vintage Linen Backing (Bottom Z-1)", icon: "🟫", color: "#E6D7C3" },
+        { z: 2, name: "2. Torn Botanical Sheet Music (Z-2)", icon: "🎼", color: "#F4EFE6" },
+        { z: 3, name: "3. Pressed Dried Lavender Sprig (Z-3)", icon: "🌿", color: "#D7E2D0" },
+        { z: 4, name: "4. Polaroid Portrait Frame (Z-4)", icon: "🖼️", color: "#FFFFFF" },
+        { z: 5, name: "5. Gold Wax Seal Stamp (Top Z-5)", icon: "🏵️", color: "#F7E3B5" }
+      ];
+      // Display list from Top (index 0 -> target z=5) to Bottom (index 4 -> target z=1)
+      let stack = [correctOrder[1], correctOrder[4], correctOrder[0], correctOrder[3], correctOrder[2]];
+
+      function checkSolved() {
+        // Top of list is Z-5, Bottom of list is Z-1
+        return stack.every((item, idx) => item.z === 5 - idx);
+      }
+
+      function render() {
+        let listHtml = "";
+        stack.forEach((layer, idx) => {
+          const zLevel = 5 - idx;
+          const isRight = layer.z === zLevel;
+          listHtml += `
+            <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl border ${
+              isRight ? "bg-[#4A6B5D]/10 border-[#4A6B5D]/40" : "bg-white border-[#E5DEC9]"
+            }">
+              <div class="flex items-center gap-2.5">
+                <span class="px-2 py-0.5 rounded bg-[#283655] text-white text-[10px] font-bold">Z-${zLevel}</span>
+                <span class="text-lg">${layer.icon}</span>
+                <span class="text-xs font-semibold text-[#231F20]">${layer.name}</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <button type="button" data-move="up" data-idx="${idx}" ${idx === 0 ? "disabled" : ""}
+                  class="layer-move atelier-btn px-2 py-1 rounded bg-[#F6F0E4] hover:bg-[#E5DEC9] disabled:opacity-35 text-xs font-bold">↑ Higher</button>
+                <button type="button" data-move="down" data-idx="${idx}" ${idx === stack.length - 1 ? "disabled" : ""}
+                  class="layer-move atelier-btn px-2 py-1 rounded bg-[#F6F0E4] hover:bg-[#E5DEC9] disabled:opacity-35 text-xs font-bold">↓ Lower</button>
+              </div>
+            </div>
+          `;
+        });
+
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col gap-3">
+            <div class="text-xs font-semibold text-[#5C5346] text-center">
+              Arrange the 5 collage layers so <span class="text-[#C85A32] font-bold">Z-5 (Top)</span> is the Gold Wax Seal and <span class="text-[#C85A32] font-bold">Z-1 (Bottom)</span> is the Vintage Linen Backing:
+            </div>
+            <div class="flex flex-col gap-2">
+              ${listHtml}
+            </div>
+          </div>
+        `;
+
+        mount.querySelectorAll(".layer-move").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.getAttribute("data-idx"));
+            const dir = btn.getAttribute("data-move");
+            const swapIdx = dir === "up" ? idx - 1 : idx + 1;
+            if (swapIdx >= 0 && swapIdx < stack.length) {
+              const tmp = stack[idx];
+              stack[idx] = stack[swapIdx];
+              stack[swapIdx] = tmp;
+              playTone(510, 0.06);
+              render();
+              if (checkSolved()) {
+                completeCurrentStage("Scrapbook Z-index hierarchy ordered from Linen Backing (Z-1) to Gold Wax Seal (Z-5)!");
+              }
+            }
+          });
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        stack = [...correctOrder].reverse();
+        render();
+        completeCurrentStage("Scrapbook Z-index collage layers stacked in true order!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 9. Origami Sequence (click 5 origami fold steps in sequence to fold a Golden Crane)
+    // -------------------------------------------------------------------------
+    function buildStage9(mount) {
+      const steps = [
+        { step: 1, title: "Diagonal Valley Crease", desc: "Fold metallic washi square corner-to-corner", icon: "📐" },
+        { step: 2, title: "Preliminary Square Base", desc: "Collapse triangle pockets into a layered diamond", icon: "💠" },
+        { step: 3, title: "Petal Fold Elongation", desc: "Lift lower flaps upward into the slender bird base", icon: "🌷" },
+        { step: 4, title: "Inside Reverse-Fold Neck & Tail", desc: "Crease inner points outward and shape the beak", icon: "🦩" },
+        { step: 5, title: "Spread Wings & Inflate Crane", desc: "Gently pull wings apart to open the 3D Golden Crane", icon: "🦢" }
+      ];
+      const scrambled = [steps[2], steps[0], steps[4], steps[1], steps[3]];
+      let currentStep = 0;
+
+      function render() {
+        let cardsHtml = "";
+        scrambled.forEach(st => {
+          const done = st.step <= currentStep;
+          cardsHtml += `
+            <button type="button" data-step="${st.step}" class="origami-btn atelier-btn p-3 rounded-xl border text-left flex items-center justify-between gap-3 transition-all ${
+              done
+                ? "bg-[#4A6B5D]/15 border-[#4A6B5D] text-[#231F20]"
+                : "bg-white hover:bg-[#FAF5EA] border-[#E5DEC9]"
+            }">
+              <div class="flex items-center gap-3">
+                <span class="text-2xl">${st.icon}</span>
+                <div>
+                  <div class="text-xs font-bold text-[#231F20]">${st.title}</div>
+                  <div class="text-[11px] text-[#6E5D4F]">${st.desc}</div>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold ${
+                done ? "bg-[#4A6B5D] text-white" : "bg-[#F6F0E4] text-[#6E5D4F]"
+              }">
+                ${done ? `Fold #${st.step} ✓` : "Fold"}
+              </span>
+            </button>
+          `;
+        });
+
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col gap-3">
+            <div class="flex items-center justify-between text-xs font-semibold text-[#5C5346]">
+              <span>Click the 5 Orizuru crease steps in chronological folding order:</span>
+              <span class="text-[#C85A32] font-bold">${currentStep} / 5 Folded</span>
+            </div>
+            <div class="flex flex-col gap-2">
+              ${cardsHtml}
+            </div>
+          </div>
+        `;
+
+        mount.querySelectorAll(".origami-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const stNum = Number(btn.getAttribute("data-step"));
+            if (stNum === currentStep + 1) {
+              currentStep = stNum;
+              playTone(460 + currentStep * 50, 0.08);
+              render();
+              if (currentStep === 5) {
+                completeCurrentStage("Golden Orizuru Paper Crane folded through all 5 traditional creases!");
+              }
+            } else if (stNum > currentStep + 1) {
+              playTone(210, 0.12, "sawtooth");
+            }
+          });
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        currentStep = 5;
+        render();
+        completeCurrentStage("Golden Origami Crane folded to completion!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 10. Paper Snowflake Cutout (snip required notches on folded triangle and unfold)
+    // -------------------------------------------------------------------------
+    function buildStage10(mount) {
+      const zones = [
+        { id: "tip", name: "Crown Star Tip", target: true, snipped: false },
+        { id: "left", name: "Left Diamond Notch", target: true, snipped: false },
+        { id: "ribA", name: "Structural Rib A (Keep Uncut!)", target: false, snipped: false },
+        { id: "right", name: "Right Fern Notch", target: true, snipped: false },
+        { id: "arch", name: "Bottom Center Arch", target: true, snipped: false },
+        { id: "ribB", name: "Structural Rib B (Keep Uncut!)", target: false, snipped: false }
+      ];
+
+      function render() {
+        let zonesHtml = "";
+        zones.forEach((z, idx) => {
+          zonesHtml += `
+            <button type="button" data-idx="${idx}" class="snip-btn atelier-btn p-3 rounded-xl border text-left flex items-center justify-between ${
+              z.snipped
+                ? z.target
+                  ? "bg-[#C85A32]/15 border-[#C85A32] text-[#231F20]"
+                  : "bg-red-100 border-red-400 text-red-900"
+                : z.target
+                ? "bg-white border-dashed border-2 border-[#D4AF37]"
+                : "bg-[#F6F0E4] border-[#E5DEC9]"
+            }">
+              <div>
+                <div class="text-xs font-bold">${z.name}</div>
+                <div class="text-[10px] ${z.target ? "text-[#C85A32] font-semibold" : "text-[#6E5D4F]"}">
+                  ${z.target ? "✂️ Cut Target Notch" : "🛡️ Structural Bridge — Leave Intact"}
+                </div>
+              </div>
+              <span class="text-sm font-bold">${z.snipped ? "✂️ Snipped" : "Intact"}</span>
+            </button>
+          `;
+        });
+
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col items-center gap-4">
+            <div class="text-xs text-[#5C5346] text-center">
+              Snip the <span class="font-bold text-[#C85A32]">4 golden dashed Cut Target Notches</span> on the folded paper wedge, keep the 2 Structural Ribs intact, then click Unfold!
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full">
+              ${zonesHtml}
+            </div>
+            <button type="button" id="s10-unfold" class="atelier-btn px-5 py-2.5 rounded-xl bg-[#283655] text-white text-xs sm:text-sm font-semibold shadow">
+              ❄️ Unfold 6-Point Kirigami Snowflake
+            </button>
+            <div id="s10-msg" class="text-xs font-semibold text-[#C85A32] h-4"></div>
+          </div>
+        `;
+
+        mount.querySelectorAll(".snip-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.getAttribute("data-idx"));
+            zones[idx].snipped = !zones[idx].snipped;
+            playTone(540, 0.06);
+            render();
+          });
+        });
+
+        mount.querySelector("#s10-unfold").addEventListener("click", () => {
+          const allRight = zones.every(z => z.snipped === z.target);
+          if (allRight) {
+            completeCurrentStage("6-Point Kirigami Lace Snowflake unfolded with radial symmetry!");
+          } else {
+            playTone(220, 0.14, "sawtooth");
+            mount.querySelector("#s10-msg").textContent =
+              "Make sure all 4 Cut Target Notches are snipped and both Structural Ribs are intact!";
+          }
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        zones.forEach(z => { z.snipped = z.target; });
+        render();
+        completeCurrentStage("Kirigami Snowflake snipped and unfolded!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 11. Quilling Coil Tightness (wind paper strip to 72%–88% tightness and glue)
+    // -------------------------------------------------------------------------
+    function buildStage11(mount) {
+      let tightness = 30;
+
+      function render() {
+        const inZone = tightness >= 72 && tightness <= 88;
+        const ringCount = Math.max(2, Math.round(tightness / 12));
+        let circlesSvg = "";
+        for (let i = 1; i <= ringCount; i++) {
+          const r = (i / ringCount) * (62 - (tightness - 30) * 0.22);
+          circlesSvg += `<circle cx="75" cy="75" r="${Math.max(5, r)}" fill="none" stroke="#C85A32" stroke-width="2.5" />`;
+        }
+
+        mount.innerHTML = `
+          <div class="w-full max-w-lg flex flex-col items-center gap-4">
+            <svg viewBox="0 0 150 150" class="w-36 h-36 bg-white rounded-full border-2 border-[#E5DEC9] shadow-inner">
+              ${circlesSvg}
+              <circle cx="75" cy="75" r="4" fill="#D4AF37" />
+            </svg>
+
+            <div class="w-full bg-white p-4 rounded-xl border border-[#E5DEC9] flex flex-col gap-2">
+              <div class="flex justify-between text-xs font-bold">
+                <span>Coil Tightness Gauge</span>
+                <span class="${inZone ? "text-[#4A6B5D]" : "text-[#C85A32]"}">${tightness}% (Target: 72% – 88%)</span>
+              </div>
+              <input id="s11-slider" type="range" min="10" max="100" value="${tightness}" class="w-full accent-[#C85A32] cursor-pointer" />
+              <div class="flex items-center justify-center gap-2 mt-1">
+                <button type="button" id="s11-minus" class="atelier-btn px-3 py-1.5 rounded-lg bg-[#F6F0E4] text-xs font-bold">-6% Loosen</button>
+                <button type="button" id="s11-plus" class="atelier-btn px-3 py-1.5 rounded-lg bg-[#283655] text-white text-xs font-bold">+8% Wind Needle</button>
+              </div>
+            </div>
+
+            <button type="button" id="s11-glue" class="atelier-btn px-5 py-2.5 rounded-xl ${
+              inZone ? "bg-[#4A6B5D] text-white glow-gold" : "bg-[#C85A32] text-white"
+            } text-xs sm:text-sm font-semibold shadow">
+              💧 Apply Dab of PVA Glue &amp; Pinch Marquise
+            </button>
+            <div id="s11-msg" class="text-xs font-semibold text-[#C85A32] h-4"></div>
+          </div>
+        `;
+
+        mount.querySelector("#s11-slider").addEventListener("input", e => {
+          tightness = Number(e.target.value);
+          render();
+        });
+        mount.querySelector("#s11-minus").addEventListener("click", () => {
+          tightness = Math.max(10, tightness - 6);
+          playTone(400, 0.05);
+          render();
+        });
+        mount.querySelector("#s11-plus").addEventListener("click", () => {
+          tightness = Math.min(100, tightness + 8);
+          playTone(540, 0.05);
+          render();
+        });
+        mount.querySelector("#s11-glue").addEventListener("click", () => {
+          if (tightness >= 72 && tightness <= 88) {
+            completeCurrentStage(`Quilling filigree wound to ${tightness}% tightness and glued!`);
+          } else {
+            playTone(220, 0.12, "sawtooth");
+            mount.querySelector("#s11-msg").textContent =
+              `Current tightness is ${tightness}%. Adjust between 72% and 88% before gluing!`;
+          }
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        tightness = 80;
+        render();
+        completeCurrentStage("Quilling coil wound to 80% tightness and sealed!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 12. Washi Tape Bridge (match 2cm, 3cm, 4cm, 5cm tape rolls to 4 torn map gaps)
+    // -------------------------------------------------------------------------
+    function buildStage12(mount) {
+      const tapes = [
+        { cm: 2, label: "2cm Sakura Blossom Roll", color: "#E8998D" },
+        { cm: 3, label: "3cm Seigaiha Wave Roll", color: "#283655" },
+        { cm: 4, label: "4cm Ginkgo Gold Foil Roll", color: "#D4AF37" },
+        { cm: 5, label: "5cm Indigo Hemp Leaf Roll", color: "#4A6B5D" }
+      ];
+      let gaps = [
+        { id: "A", need: 3, placed: null },
+        { id: "B", need: 5, placed: null },
+        { id: "C", need: 2, placed: null },
+        { id: "D", need: 4, placed: null }
+      ];
+      let selectedCm = 3;
+
+      function render() {
+        let rollsHtml = "";
+        tapes.forEach(t => {
+          const active = selectedCm === t.cm;
+          rollsHtml += `
+            <button type="button" data-cm="${t.cm}" class="tape-roll atelier-btn p-2.5 rounded-xl border-2 text-xs font-bold flex items-center gap-2 ${
+              active ? "border-[#231F20] bg-white shadow" : "border-[#E5DEC9] bg-[#FDFBF7]"
+            }">
+              <span class="w-4 h-4 rounded-full inline-block" style="background:${t.color}"></span>
+              <span>${t.label}</span>
+            </button>
+          `;
+        });
+
+        let gapsHtml = "";
+        gaps.forEach((g, idx) => {
+          const matched = g.placed === g.need;
+          gapsHtml += `
+            <button type="button" data-gap="${idx}" class="gap-slot atelier-btn p-3.5 rounded-xl border-2 flex items-center justify-between ${
+              matched
+                ? "border-[#4A6B5D] bg-[#4A6B5D]/15 text-[#231F20]"
+                : g.placed
+                ? "border-red-400 bg-red-50"
+                : "border-dashed border-[#C85A32] bg-white"
+            }">
+              <span class="text-xs font-bold">Map Tear ${g.id} (Requires ${g.need}cm Strip)</span>
+              <span class="text-xs font-semibold px-2.5 py-1 rounded-full ${
+                matched ? "bg-[#4A6B5D] text-white" : "bg-[#F6F0E4] text-[#5C5346]"
+              }">
+                ${g.placed ? `${g.placed}cm Applied ${matched ? "✓" : "✗"}` : "Click to Tape"}
+              </span>
+            </button>
+          `;
+        });
+
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col gap-4">
+            <div class="text-xs font-semibold text-[#5C5346]">1. Select a Japanese Washi Tape Roll:</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${rollsHtml}</div>
+            <div class="text-xs font-semibold text-[#5C5346] mt-1">2. Click the matching Map Tear Gap to bridge it:</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">${gapsHtml}</div>
+          </div>
+        `;
+
+        mount.querySelectorAll(".tape-roll").forEach(btn => {
+          btn.addEventListener("click", () => {
+            selectedCm = Number(btn.getAttribute("data-cm"));
+            playTone(490, 0.05);
+            render();
+          });
+        });
+
+        mount.querySelectorAll(".gap-slot").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.getAttribute("data-gap"));
+            gaps[idx].placed = selectedCm;
+            playTone(selectedCm === gaps[idx].need ? 600 : 250, 0.08);
+            render();
+            if (gaps.every(g => g.placed === g.need)) {
+              completeCurrentStage("All 4 torn map gaps bridged with exact 2cm, 3cm, 4cm, and 5cm Washi Tape strips!");
+            }
+          });
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        gaps.forEach(g => { g.placed = g.need; });
+        render();
+        completeCurrentStage("All 4 map tears mended with Washi Tape!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 13. Linocut Printmaking (carve 3x3 mirror-reverse block to stamp target 'L' print)
+    // -------------------------------------------------------------------------
+    function buildStage13(mount) {
+      // To print right-facing 'L' ([1,0,0],[1,0,0],[1,1,1]), the carved block must be mirrored '⅃':
+      const targetBlock = [
+        [0, 0, 1],
+        [0, 0, 1],
+        [1, 1, 1]
+      ];
+      // Start with all 9 cells raised (1) so user carves away the 4 non-'⅃' cells
+      let block = [
+        [1, 1, 1],
+        [1, 1, 1],
+        [1, 1, 1]
+      ];
+
+      function render() {
+        let blockHtml = "";
+        let previewHtml = "";
+        for (let r = 0; r < 3; r++) {
+          for (let c = 0; c < 3; c++) {
+            const raised = block[r][c] === 1;
+            blockHtml += `
+              <button type="button" data-r="${r}" data-c="${c}" class="lino-cell w-14 h-14 rounded-xl border-2 font-bold text-xs flex flex-col items-center justify-center transition-all ${
+                raised
+                  ? "bg-[#5C5346] text-white border-[#231F20] shadow"
+                  : "bg-[#EFE9DC] text-[#8C7A6B] border-dashed border-[#C8B99E]"
+              }">
+                <span>${raised ? "Raised" : "Carved"}</span>
+              </button>
+            `;
+          }
+          for (let pc = 0; pc < 3; pc++) {
+            // Mirrored horizontally when stamped!
+            const inked = block[r][2 - pc] === 1;
+            previewHtml += `
+              <div class="w-14 h-14 rounded-xl border flex items-center justify-center font-bold text-sm ${
+                inked ? "bg-[#C85A32] text-white border-[#C85A32]" : "bg-white border-[#E5DEC9]"
+              }">
+                ${inked ? "█" : ""}
+              </div>
+            `;
+          }
+        }
+
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col items-center gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
+              <div class="flex flex-col items-center gap-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-[#231F20]">1. Carve 3×3 Linoleum Block (Mirror '⅃')</span>
+                <div class="grid grid-cols-3 gap-2 p-3 bg-white rounded-2xl border border-[#E5DEC9]">${blockHtml}</div>
+              </div>
+              <div class="flex flex-col items-center gap-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-[#C85A32]">2. Stamped Mirror Print (Target 'L')</span>
+                <div class="grid grid-cols-3 gap-2 p-3 bg-white rounded-2xl border border-[#E5DEC9]">${previewHtml}</div>
+              </div>
+            </div>
+            <button type="button" id="s13-stamp" class="atelier-btn px-5 py-2.5 rounded-xl bg-[#C85A32] text-white text-xs sm:text-sm font-semibold shadow">
+              🖨️ Roll Brayer Ink &amp; Pull Relief Print
+            </button>
+            <div id="s13-msg" class="text-xs font-semibold text-[#C85A32] h-4"></div>
+          </div>
+        `;
+
+        mount.querySelectorAll(".lino-cell").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const r = Number(btn.getAttribute("data-r"));
+            const c = Number(btn.getAttribute("data-c"));
+            block[r][c] = block[r][c] ? 0 : 1;
+            playTone(430 + (r * 3 + c) * 20, 0.05);
+            render();
+          });
+        });
+
+        mount.querySelector("#s13-stamp").addEventListener("click", () => {
+          let ok = true;
+          for (let r = 0; r < 3; r++) {
+            for (let c = 0; c < 3; c++) {
+              if (block[r][c] !== targetBlock[r][c]) ok = false;
+            }
+          }
+          if (ok) {
+            completeCurrentStage("Mirror-reverse linoleum block carved and stamped into a crisp 'L' print!");
+          } else {
+            playTone(220, 0.12, "sawtooth");
+            mount.querySelector("#s13-msg").textContent =
+              "Carve away the left 2 columns of Rows 1 & 2 so the block shows a backward '⅃' and stamps a right-facing 'L'!";
+          }
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        block = targetBlock.map(r => [...r]);
+        render();
+        completeCurrentStage("Linocut relief print pulled cleanly!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 14. Pottery Wheel Carving (carve/widen 5 spinning clay bands to match Amphora)
+    // -------------------------------------------------------------------------
+    function buildStage14(mount) {
+      const bandNames = [
+        "1. Flared Lip Rim",
+        "2. Slender Neck",
+        "3. Broad Amphora Shoulder",
+        "4. Tapering Belly",
+        "5. Turned Foot Ring"
+      ];
+      const target = [3, 2, 5, 4, 2];
+      let widths = [4, 4, 3, 3, 4];
+
+      function render() {
+        let rowsHtml = "";
+        widths.forEach((w, idx) => {
+          const t = target[idx];
+          const matched = w === t;
+          rowsHtml += `
+            <div class="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-white border ${
+              matched ? "border-[#4A6B5D]" : "border-[#E5DEC9]"
+            }">
+              <div class="text-xs font-bold text-[#231F20] w-44">${bandNames[idx]}</div>
+              <div class="flex-1 flex items-center justify-center">
+                <div class="h-6 rounded-full bg-gradient-to-r from-[#B04B25] via-[#C85A32] to-[#B04B25] transition-all shadow-inner" style="width:${w * 18}%"></div>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button type="button" data-idx="${idx}" data-delta="-1" class="clay-btn atelier-btn w-7 h-7 rounded-lg bg-[#F6F0E4] font-bold text-xs">-</button>
+                <span class="text-xs font-bold w-14 text-center ${matched ? "text-[#4A6B5D]" : "text-[#C85A32]"}">${w} / ${t}</span>
+                <button type="button" data-idx="${idx}" data-delta="1" class="clay-btn atelier-btn w-7 h-7 rounded-lg bg-[#F6F0E4] font-bold text-xs">+</button>
+              </div>
+            </div>
+          `;
+        });
+
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col gap-3">
+            <div class="text-xs font-semibold text-[#5C5346] text-center">
+              Shape each spinning terracotta clay band with the wooden rib (- / +) to match the Classical Amphora profile <span class="font-bold text-[#C85A32]">[3, 2, 5, 4, 2]</span>:
+            </div>
+            <div class="flex flex-col gap-2">${rowsHtml}</div>
+          </div>
+        `;
+
+        mount.querySelectorAll(".clay-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.getAttribute("data-idx"));
+            const delta = Number(btn.getAttribute("data-delta"));
+            widths[idx] = Math.max(1, Math.min(5, widths[idx] + delta));
+            playTone(440 + widths[idx] * 35, 0.05);
+            render();
+            if (widths.every((v, i) => v === target[i])) {
+              completeCurrentStage("Classical Terracotta Amphora shaped on the spinning wheel!");
+            }
+          });
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        widths = [...target];
+        render();
+        completeCurrentStage("Classical Amphora thrown and trimmed on the wheel!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 15. Kintsugi Repair (assemble 4 porcelain shards and paint 4 liquid gold seams)
+    // -------------------------------------------------------------------------
+    function buildStage15(mount) {
+      let shards = [
+        { name: "North Celadon Rim", placed: false },
+        { name: "East Lotus Wing", placed: false },
+        { name: "South Foot Base", placed: false },
+        { name: "West Glaze Curve", placed: false }
+      ];
+      let seams = [
+        { name: "North-East Gold Fracture Seam", painted: false },
+        { name: "East-South Gold Fracture Seam", painted: false },
+        { name: "South-West Gold Fracture Seam", painted: false },
+        { name: "West-North Gold Fracture Seam", painted: false }
+      ];
+
+      function render() {
+        const allShardsIn = shards.every(s => s.placed);
+
+        let shardsHtml = "";
+        shards.forEach((s, i) => {
+          shardsHtml += `
+            <button type="button" data-shard="${i}" class="shard-btn atelier-btn p-3 rounded-xl border text-xs font-bold flex items-center justify-between ${
+              s.placed
+                ? "bg-[#D7E2D0] border-[#4A6B5D] text-[#231F20]"
+                : "bg-white border-[#E5DEC9] hover:bg-[#FAF5EA]"
+            }">
+              <span>🏺 ${s.name}</span>
+              <span>${s.placed ? "Fitted ✓" : "Click to Fit"}</span>
+            </button>
+          `;
+        });
+
+        let seamsHtml = "";
+        seams.forEach((sm, i) => {
+          seamsHtml += `
+            <button type="button" data-seam="${i}" ${!allShardsIn ? "disabled" : ""} class="seam-btn atelier-btn p-3 rounded-xl border text-xs font-bold flex items-center justify-between ${
+              sm.painted
+                ? "bg-gradient-to-r from-[#D4AF37]/30 to-[#F7E3B5] border-[#D4AF37] text-[#5C4308]"
+                : allShardsIn
+                ? "bg-white border-[#D4AF37] hover:bg-[#FFFDF7]"
+                : "bg-[#F6F0E4] border-[#E5DEC9] opacity-50"
+            }">
+              <span>✨ ${sm.name}</span>
+              <span>${sm.painted ? "24k Gold Sealed ✓" : "Brush Gold Urushi"}</span>
+            </button>
+          `;
+        });
+
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col gap-4">
+            <div class="text-xs font-bold uppercase tracking-wider text-[#4A6B5D]">Step 1: Assemble the 4 Fractured Celadon Shards</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${shardsHtml}</div>
+            <div class="text-xs font-bold uppercase tracking-wider text-[#9A7418] mt-1">Step 2: Brush 24k Gold Dust Across All 4 Fracture Seams</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${seamsHtml}</div>
+          </div>
+        `;
+
+        mount.querySelectorAll(".shard-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.getAttribute("data-shard"));
+            shards[idx].placed = true;
+            playTone(500 + idx * 30, 0.06);
+            render();
+          });
+        });
+
+        mount.querySelectorAll(".seam-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.getAttribute("data-seam"));
+            seams[idx].painted = true;
+            playTone(680 + idx * 45, 0.08);
+            render();
+            if (shards.every(s => s.placed) && seams.every(s => s.painted)) {
+              completeCurrentStage("Celadon tea bowl assembled and illuminated with 4 golden Kintsugi seams!");
+            }
+          });
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        shards.forEach(s => { s.placed = true; });
+        seams.forEach(s => { s.painted = true; });
+        render();
+        completeCurrentStage("Kintsugi porcelain vessel restored with 24k gold lacquer!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 16. Stained Glass Map Coloring (6 touching panes, 3 colors, no conflicts)
+    // -------------------------------------------------------------------------
+    function buildStage16(mount) {
+      // Adjacency graph for 6 panes in a 2x3 leaded glass window:
+      // [0] - [1] - [2]
+      //  |  \  |  \  |
+      // [3] - [4] - [5]
+      const edges = [
+        [0, 1], [1, 2],
+        [3, 4], [4, 5],
+        [0, 3], [1, 4], [2, 5],
+        [0, 4], [1, 5]
+      ];
+      const colors = [
+        { id: 1, name: "Amber Gold", hex: "#F4B942" },
+        { id: 2, name: "Cobalt Sapphire", hex: "#2E5EAA" },
+        { id: 3, name: "Ruby Rose", hex: "#C83E4D" }
+      ];
+      let panes = [0, 0, 0, 0, 0, 0];
+      let activeColor = 1;
+
+      function getConflicts() {
+        const bad = new Set();
+        edges.forEach(([a, b]) => {
+          if (panes[a] !== 0 && panes[a] === panes[b]) {
+            bad.add(a);
+            bad.add(b);
+          }
+        });
+        return bad;
+      }
+
+      function render() {
+        const conflicts = getConflicts();
+        let paletteHtml = "";
+        colors.forEach(c => {
+          paletteHtml += `
+            <button type="button" data-col="${c.id}" class="glass-col atelier-btn px-3.5 py-2 rounded-xl border-2 text-xs font-bold flex items-center gap-2 ${
+              activeColor === c.id ? "border-[#231F20] bg-white shadow" : "border-[#E5DEC9] bg-[#FDFBF7]"
+            }">
+              <span class="w-4 h-4 rounded-full" style="background:${c.hex}"></span>
+              <span>${c.name}</span>
+            </button>
+          `;
+        });
+
+        let panesHtml = "";
+        panes.forEach((colId, idx) => {
+          const cObj = colors.find(c => c.id === colId);
+          const hasConflict = conflicts.has(idx);
+          panesHtml += `
+            <button type="button" data-pane="${idx}" style="background:${cObj ? cObj.hex : "#FFFFFF"}"
+              class="glass-pane atelier-btn h-24 rounded-xl border-4 ${
+                hasConflict ? "border-red-600 ring-2 ring-red-400" : "border-[#231F20]"
+              } flex flex-col items-center justify-center text-xs font-bold ${
+                cObj ? "text-white" : "text-[#5C5346]"
+              } shadow-inner">
+              <span>Pane #${idx + 1}</span>
+              <span class="text-[10px] opacity-90">${cObj ? cObj.name : "Uncolored"}</span>
+              ${hasConflict ? '<span class="text-[10px] bg-red-700 px-1.5 rounded mt-0.5">Conflict!</span>' : ""}
+            </button>
+          `;
+        });
+
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col items-center gap-4">
+            <div class="flex items-center gap-2 flex-wrap justify-center">${paletteHtml}</div>
+            <div class="text-[11px] text-[#5C5346] text-center">
+              Touching panes: (1-2, 2-3, 4-5, 5-6, 1-4, 2-5, 3-6, and diagonals 1-5, 2-6). Color all 6 with zero touching conflicts!
+            </div>
+            <div class="grid grid-cols-3 gap-2.5 p-3 bg-[#231F20] rounded-2xl w-full">
+              ${panesHtml}
+            </div>
+          </div>
+        `;
+
+        mount.querySelectorAll(".glass-col").forEach(btn => {
+          btn.addEventListener("click", () => {
+            activeColor = Number(btn.getAttribute("data-col"));
+            playTone(480, 0.05);
+            render();
+          });
+        });
+
+        mount.querySelectorAll(".glass-pane").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.getAttribute("data-pane"));
+            panes[idx] = activeColor;
+            playTone(540, 0.06);
+            render();
+            if (panes.every(p => p !== 0) && getConflicts().size === 0) {
+              completeCurrentStage("Cathedral stained glass window leaded and colored with zero adjacent conflicts!");
+            }
+          });
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        // Valid 3-coloring for edges: 0->1, 1->2, 2->3, 3->3, 4->1, 5->2
+        panes = [1, 2, 3, 3, 1, 2];
+        render();
+        completeCurrentStage("Cathedral stained glass window illuminated!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 17. Shadow Puppets (rotate 3 wooden blocks to 180°, 90°, 270° -> Teapot shadow)
+    // -------------------------------------------------------------------------
+    function buildStage17(mount) {
+      const blocks = [
+        { name: "Block A: Carved Spout", angle: 0, target: 180, icon: "🎷" },
+        { name: "Block B: Porcelain Belly", angle: 0, target: 90, icon: "🏺" },
+        { name: "Block C: Loop Handle", angle: 90, target: 270, icon: "🌙" }
+      ];
+
+      function render() {
+        let cardsHtml = "";
+        blocks.forEach((b, i) => {
+          const ok = b.angle === b.target;
+          cardsHtml += `
+            <div class="p-4 rounded-2xl bg-white border-2 ${
+              ok ? "border-[#4A6B5D]" : "border-[#E5DEC9]"
+            } flex flex-col items-center gap-2.5">
+              <span class="text-xs font-bold text-[#231F20] text-center">${b.name}</span>
+              <div class="w-16 h-16 rounded-full bg-[#231F20] text-[#D4AF37] flex items-center justify-center text-2xl transition-transform duration-300" style="transform: rotate(${b.angle}deg)">
+                ${b.icon}
+              </div>
+              <span class="text-xs font-bold ${ok ? "text-[#4A6B5D]" : "text-[#C85A32]"}">
+                Current: ${b.angle}° (Target: ${b.target}°)
+              </span>
+              <button type="button" data-idx="${i}" class="rot-block atelier-btn px-3.5 py-1.5 rounded-xl bg-[#283655] text-white text-xs font-semibold">
+                ↻ Rotate +90°
+              </button>
+            </div>
+          `;
+        });
+
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col items-center gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">${cardsHtml}</div>
+          </div>
+        `;
+
+        mount.querySelectorAll(".rot-block").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.getAttribute("data-idx"));
+            blocks[idx].angle = (blocks[idx].angle + 90) % 360;
+            playTone(470 + idx * 40, 0.06);
+            render();
+            if (blocks.every(b => b.angle === b.target)) {
+              completeCurrentStage("Lantern shadow blocks aligned at 180°, 90°, and 270° to cast the vintage Teapot silhouette!");
+            }
+          });
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        blocks.forEach(b => { b.angle = b.target; });
+        render();
+        completeCurrentStage("Teapot shadow puppet aligned in the lantern beam!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 18. Diorama Shadow Box (toggle 3 lighting layers to Warm Amber, Silhouette Off, Moonlight Blue)
+    // -------------------------------------------------------------------------
+    function buildStage18(mount) {
+      const modes = ["Silhouette Off", "Warm Amber", "Moonlight Blue", "Rose Dawn"];
+      let layers = [
+        { name: "Layer 1: Foreground Paper Archway", modeIdx: 0, target: "Warm Amber" },
+        { name: "Layer 2: Midground Pine Cutout", modeIdx: 1, target: "Silhouette Off" },
+        { name: "Layer 3: Backdrop Starry Canopy", modeIdx: 0, target: "Moonlight Blue" }
+      ];
+
+      function render() {
+        let rowsHtml = "";
+        layers.forEach((l, i) => {
+          const cur = modes[l.modeIdx];
+          const ok = cur === l.target;
+          rowsHtml += `
+            <div class="p-3.5 rounded-xl bg-white border-2 ${
+              ok ? "border-[#4A6B5D]" : "border-[#E5DEC9]"
+            } flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div class="text-xs font-bold text-[#231F20]">${l.name}</div>
+                <div class="text-[11px] text-[#6E5D4F]">Target Mood: <span class="font-bold text-[#C85A32]">${l.target}</span></div>
+              </div>
+              <button type="button" data-idx="${i}" class="dio-btn atelier-btn px-4 py-2 rounded-xl font-bold text-xs ${
+                ok ? "bg-[#4A6B5D] text-white" : "bg-[#283655] text-white"
+              }">
+                💡 ${cur} (Click to Cycle)
+              </button>
+            </div>
+          `;
+        });
+
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col gap-3">
+            <div class="text-xs font-semibold text-[#5C5346] text-center">
+              Cycle each paper-theatre LED strip until all 3 depth planes match the nocturnal diorama lighting plan:
+            </div>
+            ${rowsHtml}
+          </div>
+        `;
+
+        mount.querySelectorAll(".dio-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.getAttribute("data-idx"));
+            layers[idx].modeIdx = (layers[idx].modeIdx + 1) % modes.length;
+            playTone(520, 0.06);
+            render();
+            if (layers.every(l => modes[l.modeIdx] === l.target)) {
+              completeCurrentStage("Diorama shadow box lit with Warm Amber archway, Silhouette pines, and Moonlight Blue sky!");
+            }
+          });
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        layers.forEach(l => { l.modeIdx = modes.indexOf(l.target); });
+        render();
+        completeCurrentStage("Diorama shadow box lighting balanced across all 3 planes!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 19. Kinetic Mobile Balance (swap 4 weighted charms so Left Torque = Right Torque = 10)
+    // -------------------------------------------------------------------------
+    function buildStage19(mount) {
+      // Hooks: Left Outer (dist 2), Left Inner (dist 1) | Right Inner (dist 1), Right Outer (dist 3)
+      // Charms: 4g, 2g, 1g, 3g -> when placed as [4, 2, 1, 3]:
+      // Left Torque = 2*4 + 1*2 = 10; Right Torque = 1*1 + 3*3 = 10!
+      const hookDists = [2, 1, 1, 3];
+      const hookLabels = ["Left Outer (×2)", "Left Inner (×1)", "Right Inner (×1)", "Right Outer (×3)"];
+      let charms = [
+        { name: "Copper Feather", weight: 1, icon: "🪶" },
+        { name: "Brass Sun", weight: 4, icon: "☀️" },
+        { name: "Cobalt Prism", weight: 3, icon: "💎" },
+        { name: "Porcelain Bird", weight: 2, icon: "🕊️" }
+      ];
+      let sel = null;
+
+      function calcTorques() {
+        const left = hookDists[0] * charms[0].weight + hookDists[1] * charms[1].weight;
+        const right = hookDists[2] * charms[2].weight + hookDists[3] * charms[3].weight;
+        return { left, right };
+      }
+
+      function render() {
+        const { left, right } = calcTorques();
+        const tilt = Math.max(-14, Math.min(14, (right - left) * 1.5));
+
+        let hooksHtml = "";
+        charms.forEach((ch, idx) => {
+          const isSelected = sel === idx;
+          const torque = hookDists[idx] * ch.weight;
+          hooksHtml += `
+            <button type="button" data-idx="${idx}" class="charm-btn atelier-btn p-3 rounded-xl border-2 flex flex-col items-center gap-1 ${
+              isSelected ? "border-[#231F20] ring-2 ring-[#D4AF37] bg-white" : "border-[#E5DEC9] bg-white"
+            }">
+              <span class="text-[10px] font-bold uppercase text-[#6E5D4F]">${hookLabels[idx]}</span>
+              <span class="text-2xl my-1">${ch.icon}</span>
+              <span class="text-xs font-bold text-[#231F20]">${ch.name} (${ch.weight}g)</span>
+              <span class="text-[11px] font-semibold text-[#C85A32]">Torque: ${hookDists[idx]} × ${ch.weight} = ${torque}</span>
+            </button>
+          `;
+        });
+
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col items-center gap-4">
+            <div class="w-full p-3 rounded-xl bg-[#F6F0E4] border border-[#E5DEC9] flex items-center justify-around text-xs font-bold">
+              <span class="${left === 10 ? "text-[#4A6B5D]" : "text-[#C85A32]"}">Left Torque: ${left} (Target: 10)</span>
+              <span>⚖️ Fulcrum</span>
+              <span class="${right === 10 ? "text-[#4A6B5D]" : "text-[#C85A32]"}">Right Torque: ${right} (Target: 10)</span>
+            </div>
+
+            <div class="w-4/5 h-2 rounded-full bg-[#D4AF37] transition-transform duration-300" style="transform: rotate(${tilt}deg)"></div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full">
+              ${hooksHtml}
+            </div>
+            <div class="text-xs text-[#5C5346]">Click any two charms to swap their hooks until Left Torque = 10 and Right Torque = 10.</div>
+          </div>
+        `;
+
+        mount.querySelectorAll(".charm-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.getAttribute("data-idx"));
+            if (sel === null) {
+              sel = idx;
+              playTone(480, 0.05);
+              render();
+            } else if (sel === idx) {
+              sel = null;
+              render();
+            } else {
+              const tmp = charms[sel];
+              charms[sel] = charms[idx];
+              charms[idx] = tmp;
+              sel = null;
+              playTone(560, 0.07);
+              render();
+              const t = calcTorques();
+              if (t.left === 10 && t.right === 10) {
+                completeCurrentStage("Kinetic mobile balanced in horizontal equilibrium (Left Torque = 10, Right Torque = 10)!");
+              }
+            }
+          });
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        charms = [
+          { name: "Brass Sun", weight: 4, icon: "☀️" },
+          { name: "Porcelain Bird", weight: 2, icon: "🕊️" },
+          { name: "Copper Feather", weight: 1, icon: "🪶" },
+          { name: "Cobalt Prism", weight: 3, icon: "💎" }
+        ];
+        sel = null;
+        render();
+        completeCurrentStage("Kinetic mobile balanced at Torque = 10 on both arms!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 20. Virtual String Art (click pegs in +3 star sequence around 8-peg circular board)
+    // -------------------------------------------------------------------------
+    function buildStage20(mount) {
+      const seq = [0, 3, 6, 1, 4, 7, 2, 5, 0];
+      let stepIdx = 0; // index in seq currently reached (starts at 0 -> peg 0)
+
+      function pegCoords(p) {
+        const angle = (p * Math.PI * 2) / 8 - Math.PI / 2;
+        return {
+          x: 130 + Math.cos(angle) * 92,
+          y: 130 + Math.sin(angle) * 92
+        };
+      }
+
+      function render() {
+        const nextPeg = seq[stepIdx + 1];
+        let linesSvg = "";
+        for (let i = 0; i < stepIdx; i++) {
+          const a = pegCoords(seq[i]);
+          const b = pegCoords(seq[i + 1]);
+          linesSvg += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#D4AF37" stroke-width="3" stroke-linecap="round" />`;
+        }
+
+        let pegsHtml = "";
+        for (let p = 0; p < 8; p++) {
+          const c = pegCoords(p);
+          const isNext = p === nextPeg;
+          pegsHtml += `
+            <button type="button" data-peg="${p}" style="left:${(c.x / 260) * 100}%; top:${(c.y / 260) * 100}%;"
+              class="peg-btn -translate-x-1/2 -translate-y-1/2 absolute w-9 h-9 rounded-full text-xs font-bold flex items-center justify-center transition-all ${
+                isNext
+                  ? "bg-[#D4AF37] text-[#231F20] ring-4 ring-[#D4AF37]/40 scale-110"
+                  : "bg-white text-[#231F20] border-2 border-[#D4AF37]"
+              }">
+              ${p}
+            </button>
+          `;
+        }
+
+        mount.innerHTML = `
+          <div class="w-full max-w-md flex flex-col items-center gap-3">
+            <div class="text-xs font-semibold text-[#5C5346]">
+              Click Peg <span class="font-bold text-[#C85A32]">#${nextPeg}</span> next (+3 star step • ${stepIdx}/8 threads strung)
+            </div>
+            <div class="relative w-64 h-64 rounded-full bg-[#283655] border-4 border-[#D4AF37] shadow-inner">
+              <svg viewBox="0 0 260 260" class="w-full h-full">${linesSvg}</svg>
+              ${pegsHtml}
+            </div>
+          </div>
+        `;
+
+        mount.querySelectorAll(".peg-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const p = Number(btn.getAttribute("data-peg"));
+            if (p === seq[stepIdx + 1]) {
+              stepIdx++;
+              playTone(480 + stepIdx * 40, 0.07);
+              render();
+              if (stepIdx === seq.length - 1) {
+                completeCurrentStage("8-pointed Geometric Octagram woven in metallic gold thread!");
+              }
+            } else {
+              playTone(220, 0.1, "sawtooth");
+            }
+          });
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        stepIdx = seq.length - 1;
+        render();
+        completeCurrentStage("8-pointed String Art Octagram completed!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 21. Weaving Loom (toggle frayed intersections on 3x3 loom to alternate Over/Under)
+    // -------------------------------------------------------------------------
+    function buildStage21(mount) {
+      const target = [
+        [1, 0, 1],
+        [0, 1, 0],
+        [1, 0, 1]
+      ];
+      let loom = [
+        [1, 1, 1],
+        [0, 0, 0],
+        [1, 0, 0]
+      ];
+
+      function render() {
+        let cellsHtml = "";
+        for (let r = 0; r < 3; r++) {
+          for (let c = 0; c < 3; c++) {
+            const over = loom[r][c] === 1;
+            const ok = loom[r][c] === target[r][c];
+            cellsHtml += `
+              <button type="button" data-r="${r}" data-c="${c}" class="loom-cell w-20 h-20 rounded-xl border-2 flex flex-col items-center justify-center text-xs font-bold transition-all ${
+                over
+                  ? "bg-[#C85A32] text-white border-[#231F20]"
+                  : "bg-[#283655] text-white border-[#231F20]"
+              }">
+                <span>${over ? "OVER ━" : "UNDER ┃"}</span>
+                <span class="text-[10px] mt-1 opacity-80">${ok ? "✓ Woven" : "Frayed"}</span>
+              </button>
+            `;
+          }
+        }
+
+        mount.innerHTML = `
+          <div class="w-full max-w-md flex flex-col items-center gap-4">
+            <div class="text-xs text-[#5C5346] text-center">
+              Click intersections on the 3×3 tapestry loom so every thread alternates <span class="font-bold text-[#C85A32]">OVER / UNDER / OVER</span> in a tabby checkerboard weave.
+            </div>
+            <div class="grid grid-cols-3 gap-2.5 p-4 bg-[#F6F0E4] rounded-2xl border-2 border-[#C8B99E]">
+              ${cellsHtml}
+            </div>
+          </div>
+        `;
+
+        mount.querySelectorAll(".loom-cell").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const r = Number(btn.getAttribute("data-r"));
+            const c = Number(btn.getAttribute("data-c"));
+            loom[r][c] = loom[r][c] ? 0 : 1;
+            playTone(460 + (r * 3 + c) * 20, 0.05);
+            render();
+            if (loom.every((row, ri) => row.every((val, ci) => val === target[ri][ci]))) {
+              completeCurrentStage("3×3 Tapestry Loom woven into an alternating Over/Under tabby pattern!");
+            }
+          });
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        loom = target.map(r => [...r]);
+        render();
+        completeCurrentStage("3×3 Tapestry Loom woven cleanly!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 22. Beaded Necklace Sequence (complete repeating Ruby-Gold-Lapis-Gold sequence)
+    // -------------------------------------------------------------------------
+    function buildStage22(mount) {
+      const beadTypes = [
+        { id: "Ruby", color: "#C82D23", label: "Carnelian Ruby" },
+        { id: "Gold", color: "#D4AF37", label: "Hammered Gold" },
+        { id: "Lapis", color: "#234B9E", label: "Afghani Lapis" },
+        { id: "Pearl", color: "#F4EFE6", label: "Freshwater Pearl" }
+      ];
+      const targetSeq = ["Ruby", "Gold", "Lapis", "Gold"];
+      let strung = [];
+
+      function render() {
+        const starter = ["Ruby", "Gold", "Lapis", "Gold"];
+        let cordHtml = "";
+        starter.forEach(bId => {
+          const b = beadTypes.find(x => x.id === bId);
+          cordHtml += `<div class="w-10 h-10 rounded-full border-2 border-white shadow flex items-center justify-center text-[10px] font-bold text-white" style="background:${b.color}">${b.id}</div>`;
+        });
+        for (let i = 0; i < 4; i++) {
+          const bId = strung[i];
+          const b = beadTypes.find(x => x.id === bId);
+          cordHtml += `
+            <div class="w-10 h-10 rounded-full border-2 ${
+              b ? "border-white text-white shadow" : "border-dashed border-[#C85A32] bg-white text-[#8C7A6B]"
+            } flex items-center justify-center text-[10px] font-bold" style="${b ? `background:${b.color}` : ""}">
+              ${b ? b.id : `?`}
+            </div>
+          `;
+        }
+
+        let bowlsHtml = "";
+        beadTypes.forEach(b => {
+          bowlsHtml += `
+            <button type="button" data-bead="${b.id}" class="bead-bowl atelier-btn p-3 rounded-xl border border-[#E5DEC9] bg-white flex items-center gap-2 text-xs font-bold">
+              <span class="w-5 h-5 rounded-full border border-black/15" style="background:${b.color}"></span>
+              <span>+ ${b.label}</span>
+            </button>
+          `;
+        });
+
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col items-center gap-4">
+            <div class="text-xs font-semibold text-[#5C5346]">Complete the repeating 4-bead motif <span class="font-bold text-[#C85A32]">Ruby → Gold → Lapis → Gold</span>:</div>
+            <div class="flex items-center gap-2 p-4 rounded-2xl bg-[#F6F0E4] border border-[#E5DEC9] flex-wrap justify-center">
+              ${cordHtml}
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full">${bowlsHtml}</div>
+            <button type="button" id="s22-undo" class="atelier-btn px-3 py-1.5 rounded-lg bg-white border border-[#E5DEC9] text-xs font-semibold">
+              ⌫ Remove Last Bead
+            </button>
+          </div>
+        `;
+
+        mount.querySelectorAll(".bead-bowl").forEach(btn => {
+          btn.addEventListener("click", () => {
+            if (strung.length < 4) {
+              strung.push(btn.getAttribute("data-bead"));
+              playTone(520 + strung.length * 40, 0.06);
+              render();
+              if (strung.length === 4) {
+                if (strung.every((v, i) => v === targetSeq[i])) {
+                  completeCurrentStage("Ruby – Gold – Lapis – Gold artisan necklace strung and clasped!");
+                } else {
+                  playTone(220, 0.14, "sawtooth");
+                }
+              }
+            }
+          });
+        });
+
+        mount.querySelector("#s22-undo").addEventListener("click", () => {
+          strung.pop();
+          render();
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        strung = [...targetSeq];
+        render();
+        completeCurrentStage("Gemstone bead necklace completed!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 23. Macramé Knots (tie 5-step L-Over-R, R-Over-L, Berry, L-Over-R, Crown Cinch)
+    // -------------------------------------------------------------------------
+    function buildStage23(mount) {
+      const target = ["L-Over-R", "R-Over-L", "Berry", "L-Over-R", "Crown Cinch"];
+      const options = ["L-Over-R", "R-Over-L", "Berry", "Crown Cinch"];
+      let tied = [];
+
+      function render() {
+        let stepsHtml = "";
+        target.forEach((t, i) => {
+          const cur = tied[i];
+          const ok = cur === t;
+          stepsHtml += `
+            <div class="px-3 py-2 rounded-xl border text-xs font-bold flex items-center justify-between ${
+              cur
+                ? ok
+                  ? "bg-[#4A6B5D]/15 border-[#4A6B5D] text-[#231F20]"
+                  : "bg-red-100 border-red-400 text-red-900"
+                : "bg-white border-[#E5DEC9] text-[#6E5D4F]"
+            }">
+              <span>Step ${i + 1}: Target [${t}]</span>
+              <span>${cur ? `${cur} ${ok ? "✓" : "✗"}` : "Pending"}</span>
+            </div>
+          `;
+        });
+
+        let btnsHtml = "";
+        options.forEach(opt => {
+          btnsHtml += `
+            <button type="button" data-knot="${opt}" class="knot-btn atelier-btn px-3.5 py-2.5 rounded-xl bg-[#283655] text-white text-xs font-bold shadow-sm">
+              🪢 Tie ${opt}
+            </button>
+          `;
+        });
+
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col gap-3">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">${btnsHtml}</div>
+            <div class="flex flex-col gap-1.5 mt-1">${stepsHtml}</div>
+            <button type="button" id="s23-undo" class="self-center atelier-btn px-3 py-1.5 rounded-lg bg-white border border-[#E5DEC9] text-xs font-semibold">
+              ⌫ Untie Last Knot
+            </button>
+          </div>
+        `;
+
+        mount.querySelectorAll(".knot-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            if (tied.length < 5) {
+              tied.push(btn.getAttribute("data-knot"));
+              playTone(480 + tied.length * 35, 0.06);
+              render();
+              if (tied.length === 5 && tied.every((k, i) => k === target[i])) {
+                completeCurrentStage("5-step Macramé Square & Berry Knot wall hanging tied cleanly!");
+              }
+            }
+          });
+        });
+
+        mount.querySelector("#s23-undo").addEventListener("click", () => {
+          tied.pop();
+          render();
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        tied = [...target];
+        render();
+        completeCurrentStage("Macramé wall hanging knotted in sequence!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 24. Tie-Dye Fold & Dip (bind rubber bands and dye Center=Marigold, Middle=Magenta, Outer=Indigo)
+    // -------------------------------------------------------------------------
+    function buildStage24(mount) {
+      let bound = false;
+      let zones = { center: null, middle: null, outer: null };
+      let activeDye = "Marigold";
+      const dyes = [
+        { id: "Marigold", hex: "#F4A226" },
+        { id: "Magenta", hex: "#C82D67" },
+        { id: "Indigo", hex: "#283655" }
+      ];
+
+      function getHex(name) {
+        const d = dyes.find(x => x.id === name);
+        return d ? d.hex : "#FFFFFF";
+      }
+
+      function render() {
+        let dyeBtns = "";
+        dyes.forEach(d => {
+          dyeBtns += `
+            <button type="button" data-dye="${d.id}" class="dye-btn atelier-btn px-3.5 py-2 rounded-xl border-2 text-xs font-bold flex items-center gap-2 ${
+              activeDye === d.id ? "border-[#231F20] bg-white shadow" : "border-[#E5DEC9] bg-[#FDFBF7]"
+            }">
+              <span class="w-4 h-4 rounded-full" style="background:${d.hex}"></span>
+              <span>${d.id} Bottle</span>
+            </button>
+          `;
+        });
+
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col items-center gap-4">
+            <button type="button" id="s24-bind" class="atelier-btn px-4 py-2 rounded-xl text-xs font-bold ${
+              bound ? "bg-[#4A6B5D] text-white" : "bg-[#C85A32] text-white glow-gold"
+            }">
+              ${bound ? "✓ Step 1: Spiral Rubber Bands Bound" : "👉 Step 1: Click to Bind Spiral Rubber Bands"}
+            </button>
+
+            <div class="flex items-center gap-2">${dyeBtns}</div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
+              <button type="button" data-zone="center" class="zone-btn atelier-btn p-4 rounded-2xl border-2 border-[#231F20] text-xs font-bold flex flex-col items-center gap-1"
+                style="background:${getHex(zones.center)}; color:${zones.center ? "#FFF" : "#231F20"}">
+                <span>Center Core</span>
+                <span class="text-[10px] opacity-90">Target: Marigold</span>
+                <span>Current: ${zones.center || "Undyed"}</span>
+              </button>
+              <button type="button" data-zone="middle" class="zone-btn atelier-btn p-4 rounded-2xl border-2 border-[#231F20] text-xs font-bold flex flex-col items-center gap-1"
+                style="background:${getHex(zones.middle)}; color:${zones.middle ? "#FFF" : "#231F20"}">
+                <span>Middle Pleat Ring</span>
+                <span class="text-[10px] opacity-90">Target: Magenta</span>
+                <span>Current: ${zones.middle || "Undyed"}</span>
+              </button>
+              <button type="button" data-zone="outer" class="zone-btn atelier-btn p-4 rounded-2xl border-2 border-[#231F20] text-xs font-bold flex flex-col items-center gap-1"
+                style="background:${getHex(zones.outer)}; color:${zones.outer ? "#FFF" : "#231F20"}">
+                <span>Outer Edge</span>
+                <span class="text-[10px] opacity-90">Target: Indigo</span>
+                <span>Current: ${zones.outer || "Undyed"}</span>
+              </button>
+            </div>
+
+            <button type="button" id="s24-rinse" class="atelier-btn px-5 py-2.5 rounded-xl bg-[#283655] text-white text-xs sm:text-sm font-semibold shadow">
+              🌊 Rinse &amp; Unbind Shibori Spiral
+            </button>
+            <div id="s24-msg" class="text-xs font-semibold text-[#C85A32] h-4"></div>
+          </div>
+        `;
+
+        mount.querySelector("#s24-bind").addEventListener("click", () => {
+          bound = true;
+          playTone(500, 0.06);
+          render();
+        });
+
+        mount.querySelectorAll(".dye-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            activeDye = btn.getAttribute("data-dye");
+            playTone(460, 0.05);
+            render();
+          });
+        });
+
+        mount.querySelectorAll(".zone-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            if (!bound) {
+              playTone(220, 0.1, "sawtooth");
+              mount.querySelector("#s24-msg").textContent = "Bind the rubber bands in Step 1 before applying dye!";
+              return;
+            }
+            const z = btn.getAttribute("data-zone");
+            zones[z] = activeDye;
+            playTone(550, 0.06);
+            render();
+          });
+        });
+
+        mount.querySelector("#s24-rinse").addEventListener("click", () => {
+          if (bound && zones.center === "Marigold" && zones.middle === "Magenta" && zones.outer === "Indigo") {
+            completeCurrentStage("Spiral Shibori textile bound and dyed with Center=Marigold, Middle=Magenta, Outer=Indigo!");
+          } else {
+            playTone(220, 0.12, "sawtooth");
+            mount.querySelector("#s24-msg").textContent =
+              "Ensure rubber bands are bound and Center=Marigold, Middle=Magenta, Outer=Indigo!";
+          }
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        bound = true;
+        zones = { center: "Marigold", middle: "Magenta", outer: "Indigo" };
+        render();
+        completeCurrentStage("Shibori Tie-Dye spiral bound, dyed, and rinsed!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 25. Cross-Stitch Untangler (pull 5 overlapping threads in reverse order E, C, A, D, B)
+    // -------------------------------------------------------------------------
+    function buildStage25(mount) {
+      const targetOrder = ["E", "C", "A", "D", "B"];
+      const threadMeta = [
+        { id: "A", name: "Thread A (Crimson Silk)", zNote: "Under E & C, Over D", color: "#C82D23" },
+        { id: "B", name: "Thread B (Bottom Indigo)", zNote: "Bottom-most thread (Pull 5th)", color: "#283655" },
+        { id: "C", name: "Thread C (Ochre Gold)", zNote: "Under E, Over A (Pull 2nd)", color: "#D4AF37" },
+        { id: "D", name: "Thread D (Sage Moss)", zNote: "Under A, Over B (Pull 4th)", color: "#4A6B5D" },
+        { id: "E", name: "Thread E (Top Terracotta)", zNote: "Topmost unblocked (Pull 1st)", color: "#C85A32" }
+      ];
+      let pulled = [];
+
+      function render() {
+        const nextNeed = targetOrder[pulled.length];
+        let cardsHtml = "";
+        threadMeta.forEach(t => {
+          const isPulled = pulled.includes(t.id);
+          cardsHtml += `
+            <button type="button" data-th="${t.id}" ${isPulled ? "disabled" : ""}
+              class="thread-btn atelier-btn p-3 rounded-xl border-2 flex items-center justify-between ${
+                isPulled
+                  ? "bg-[#4A6B5D]/15 border-[#4A6B5D] opacity-60"
+                  : "bg-white border-[#E5DEC9] hover:border-[#231F20]"
+              }">
+              <div class="flex items-center gap-2.5">
+                <span class="w-4 h-4 rounded-full" style="background:${t.color}"></span>
+                <div class="text-left">
+                  <div class="text-xs font-bold text-[#231F20]">${t.name}</div>
+                  <div class="text-[10px] text-[#6E5D4F]">${t.zNote}</div>
+                </div>
+              </div>
+              <span class="text-xs font-bold ${isPulled ? "text-[#4A6B5D]" : "text-[#C85A32]"}">
+                ${isPulled ? "Untangled ✓" : "Pull Skein"}
+              </span>
+            </button>
+          `;
+        });
+
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col gap-3">
+            <div class="text-xs font-semibold text-[#5C5346] text-center">
+              Pull the overlapping embroidery skeins free from top to bottom (<span class="font-bold text-[#C85A32]">E → C → A → D → B</span>). Next up: <span class="font-bold text-[#283655]">Thread ${nextNeed || "Done"}</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${cardsHtml}</div>
+            <div id="s25-msg" class="text-xs font-semibold text-[#C85A32] text-center h-4"></div>
+          </div>
+        `;
+
+        mount.querySelectorAll(".thread-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const id = btn.getAttribute("data-th");
+            if (id === targetOrder[pulled.length]) {
+              pulled.push(id);
+              playTone(500 + pulled.length * 45, 0.07);
+              render();
+              if (pulled.length === 5) {
+                completeCurrentStage("All 5 overlapping cross-stitch skeins untangled in reverse order E → C → A → D → B!");
+              }
+            } else {
+              playTone(210, 0.12, "sawtooth");
+              mount.querySelector("#s25-msg").textContent =
+                `Thread ${id} is still pinned underneath Thread ${targetOrder[pulled.length]}! Pull Thread ${targetOrder[pulled.length]} first.`;
+            }
+          });
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        pulled = [...targetOrder];
+        render();
+        completeCurrentStage("All 5 embroidery skeins untangled in E, C, A, D, B order!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 26. Darkroom Developer (brush developer to 75%–95% exposure and transfer to Stop Bath)
+    // -------------------------------------------------------------------------
+    function buildStage26(mount) {
+      let exposure = 0;
+
+      function render() {
+        const inSweetSpot = exposure >= 75 && exposure <= 95;
+        const opacity = Math.min(1, exposure / 85);
+
+        mount.innerHTML = `
+          <div class="w-full max-w-lg flex flex-col items-center gap-4">
+            <div class="w-full p-5 rounded-2xl bg-[#2A0E12] border-2 border-[#8C2D19] flex flex-col items-center gap-3 text-white shadow-inner">
+              <div class="text-[11px] font-bold uppercase tracking-widest text-[#FF8A75]">🔴 Red Safelight Darkroom Tray</div>
+              <div class="w-48 h-36 rounded-xl bg-[#F5F0E6] border-4 border-white flex flex-col items-center justify-center relative overflow-hidden">
+                <div class="flex flex-col items-center transition-opacity duration-300 text-[#231F20]" style="opacity:${opacity}">
+                  <span class="text-4xl">🏛️</span>
+                  <span class="font-serif-atelier font-bold text-sm mt-1">Archival Atelier Print</span>
+                </div>
+              </div>
+              <div class="text-xs font-bold ${inSweetSpot ? "text-[#7AE582]" : "text-[#FFD1B3]"}">
+                Silver Halide Exposure: ${exposure}% (Optimal Window: 75% – 95%)
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 flex-wrap justify-center">
+              <button type="button" id="s26-brush" class="atelier-btn px-4 py-2 rounded-xl bg-[#C85A32] text-white text-xs font-bold shadow">
+                🖌️ Agitate Developer (+16%)
+              </button>
+              <button type="button" id="s26-fine" class="atelier-btn px-3 py-2 rounded-xl bg-[#F6F0E4] border border-[#E5DEC9] text-xs font-bold">
+                +5% Fine Brush
+              </button>
+              <button type="button" id="s26-fresh" class="atelier-btn px-3 py-2 rounded-xl bg-white border border-[#E5DEC9] text-xs font-semibold">
+                New Photo Paper (0%)
+              </button>
+            </div>
+
+            <button type="button" id="s26-stop" class="atelier-btn px-5 py-2.5 rounded-xl ${
+              inSweetSpot ? "bg-[#4A6B5D] text-white glow-gold" : "bg-[#283655] text-white"
+            } text-xs sm:text-sm font-semibold shadow">
+              🧪 Transfer Print to Stop Bath
+            </button>
+            <div id="s26-msg" class="text-xs font-semibold text-[#C85A32] h-4"></div>
+          </div>
+        `;
+
+        mount.querySelector("#s26-brush").addEventListener("click", () => {
+          exposure = Math.min(100, exposure + 16);
+          playTone(460 + exposure * 2, 0.06);
+          render();
+        });
+        mount.querySelector("#s26-fine").addEventListener("click", () => {
+          exposure = Math.min(100, exposure + 5);
+          playTone(500 + exposure * 2, 0.05);
+          render();
+        });
+        mount.querySelector("#s26-fresh").addEventListener("click", () => {
+          exposure = 0;
+          render();
+        });
+        mount.querySelector("#s26-stop").addEventListener("click", () => {
+          if (exposure >= 75 && exposure <= 95) {
+            completeCurrentStage(`Silver-gelatin print developed to ${exposure}% and fixed in the Stop Bath!`);
+          } else {
+            playTone(220, 0.12, "sawtooth");
+            mount.querySelector("#s26-msg").textContent =
+              exposure < 75
+                ? `Underexposed (${exposure}%)! Agitate developer until between 75% and 95%.`
+                : `Overexposed (${exposure}%)! Click 'New Photo Paper' and stop between 75% and 95%.`;
+          }
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        exposure = 84;
+        render();
+        completeCurrentStage("Silver-gelatin photograph developed at 84% exposure!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 27. Camera Focus Blur (rack focus slider to 20mm, 55mm, and 90mm to lock 3 planes)
+    // -------------------------------------------------------------------------
+    function buildStage27(mount) {
+      let mm = 35;
+      let locked = { 20: false, 55: false, 90: false };
+
+      function render() {
+        const planes = [
+          { target: 20, name: "Foreground Dried Botanicals", icon: "🌾" },
+          { target: 55, name: "Midground Porcelain Bust", icon: "🗿" },
+          { target: 90, name: "Background Rose Window", icon: "🪟" }
+        ];
+
+        let cardsHtml = "";
+        planes.forEach(p => {
+          const isLocked = locked[p.target];
+          const blurPx = isLocked ? 0 : Math.min(6, Math.abs(mm - p.target) / 6);
+          cardsHtml += `
+            <div class="p-3.5 rounded-xl bg-white border-2 ${
+              isLocked ? "border-[#4A6B5D]" : "border-[#E5DEC9]"
+            } flex flex-col items-center gap-1.5 text-center">
+              <div class="text-2xl transition-all" style="filter: blur(${blurPx.toFixed(1)}px)">✨</div>
+              <div class="text-xs font-bold text-[#231F20]">${p.name}</div>
+              <div class="text-[11px] font-semibold ${isLocked ? "text-[#4A6B5D]" : "text-[#C85A32]"}">
+                ${isLocked ? `✓ Locked @ ${p.target}mm` : `Target Focal Plane: ${p.target}mm`}
+              </div>
+              <button type="button" data-snap="${p.target}" class="snap-focus atelier-btn mt-1 px-2.5 py-1 rounded bg-[#F6F0E4] hover:bg-[#E5DEC9] text-[11px] font-bold">
+                Rack to ${p.target}mm &amp; Lock
+              </button>
+            </div>
+          `;
+        });
+
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col items-center gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">${cardsHtml}</div>
+            <div class="w-full p-4 rounded-xl bg-white border border-[#E5DEC9] flex flex-col gap-2">
+              <div class="flex justify-between text-xs font-bold">
+                <span>Brass Bellows Focus Ring</span>
+                <span class="text-[#C85A32]">${mm}mm</span>
+              </div>
+              <input id="s27-slider" type="range" min="10" max="100" value="${mm}" class="w-full accent-[#283655] cursor-pointer" />
+              <button type="button" id="s27-lock" class="self-center atelier-btn px-4 py-2 rounded-xl bg-[#283655] text-white text-xs font-bold mt-1">
+                📷 Lock Focus Plane at ${mm}mm
+              </button>
+            </div>
+          </div>
+        `;
+
+        mount.querySelector("#s27-slider").addEventListener("input", e => {
+          mm = Number(e.target.value);
+          render();
+        });
+
+        mount.querySelector("#s27-lock").addEventListener("click", () => {
+          [20, 55, 90].forEach(t => {
+            if (Math.abs(mm - t) <= 3) locked[t] = true;
+          });
+          playTone(580, 0.07);
+          render();
+          if (locked[20] && locked[55] && locked[90]) {
+            completeCurrentStage("All 3 macro depth planes (20mm, 55mm, 90mm) focus-stacked into a razor-sharp composite!");
+          }
+        });
+
+        mount.querySelectorAll(".snap-focus").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const t = Number(btn.getAttribute("data-snap"));
+            mm = t;
+            locked[t] = true;
+            playTone(600, 0.07);
+            render();
+            if (locked[20] && locked[55] && locked[90]) {
+              completeCurrentStage("All 3 macro depth planes (20mm, 55mm, 90mm) focus-stacked into a razor-sharp composite!");
+            }
+          });
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        locked = { 20: true, 55: true, 90: true };
+        mm = 90;
+        render();
+        completeCurrentStage("All 3 macro depth planes locked at 20mm, 55mm, and 90mm!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 28. Tangram Canvas (rotate 5 geometric Tangram pieces to 0° to form the Swan)
+    // -------------------------------------------------------------------------
+    function buildStage28(mount) {
+      let pieces = [
+        { name: "Swan Beak Triangle", angle: 90, color: "#C85A32" },
+        { name: "Slender Neck Triangle", angle: 180, color: "#D4AF37" },
+        { name: "Wing Parallelogram", angle: 270, color: "#283655" },
+        { name: "Breast Square Tile", angle: 90, color: "#4A6B5D" },
+        { name: "Plumed Tail Triangle", angle: 180, color: "#782E63" }
+      ];
+
+      function render() {
+        let html = "";
+        pieces.forEach((p, idx) => {
+          const ok = p.angle === 0;
+          html += `
+            <button type="button" data-idx="${idx}" class="tangram-tile atelier-btn p-3.5 rounded-2xl border-2 ${
+              ok ? "border-[#4A6B5D] bg-[#4A6B5D]/10" : "border-[#E5DEC9] bg-white"
+            } flex flex-col items-center gap-2">
+              <div class="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold shadow transition-transform duration-300"
+                style="background:${p.color}; transform: rotate(${p.angle}deg)">
+                ▲
+              </div>
+              <span class="text-xs font-bold text-[#231F20] text-center">${p.name}</span>
+              <span class="text-[11px] font-bold ${ok ? "text-[#4A6B5D]" : "text-[#C85A32]"}">
+                ${p.angle}° ${ok ? "✓ Aligned" : "(Click +90°)"}
+              </span>
+            </button>
+          `;
+        });
+
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col items-center gap-4">
+            <div class="text-xs text-[#5C5346] text-center">
+              Click each wooden Tangram polygon to rotate it by +90° until all 5 pieces lock at <span class="font-bold text-[#C85A32]">0°</span> to form the Swan:
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 w-full">${html}</div>
+          </div>
+        `;
+
+        mount.querySelectorAll(".tangram-tile").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.getAttribute("data-idx"));
+            pieces[idx].angle = (pieces[idx].angle + 90) % 360;
+            playTone(500 + idx * 30, 0.06);
+            render();
+            if (pieces.every(p => p.angle === 0)) {
+              completeCurrentStage("All 5 wooden Tangram tiles rotated to 0° to assemble the Graceful Swan!");
+            }
+          });
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        pieces.forEach(p => { p.angle = 0; });
+        render();
+        completeCurrentStage("Tangram Swan mosaic aligned at 0°!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 29. Mandala Sand Art (rotate 4 concentric mandala rings to 0° alignment)
+    // -------------------------------------------------------------------------
+    function buildStage29(mount) {
+      let rings = [
+        { name: "Ring 1: Inner Lotus Core", angle: 90, color: "#C85A32" },
+        { name: "Ring 2: Sunburst Petal Ring", angle: 180, color: "#D4AF37" },
+        { name: "Ring 3: Sacred Fret Ring", angle: 270, color: "#4A6B5D" },
+        { name: "Ring 4: Outer Guardian Ring", angle: 180, color: "#283655" }
+      ];
+
+      function render() {
+        let controlsHtml = "";
+        rings.forEach((r, i) => {
+          const ok = r.angle === 0;
+          controlsHtml += `
+            <div class="p-3 rounded-xl bg-white border-2 ${
+              ok ? "border-[#4A6B5D]" : "border-[#E5DEC9]"
+            } flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="w-4 h-4 rounded-full" style="background:${r.color}"></span>
+                <span class="text-xs font-bold text-[#231F20]">${r.name}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold ${ok ? "text-[#4A6B5D]" : "text-[#C85A32]"}">${r.angle}°</span>
+                <button type="button" data-idx="${i}" class="mandala-btn atelier-btn px-3 py-1 rounded-lg bg-[#283655] text-white text-xs font-bold">
+                  ↻ +90°
+                </button>
+              </div>
+            </div>
+          `;
+        });
+
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col items-center gap-4">
+            <div class="text-xs font-semibold text-[#5C5346] text-center">
+              Rotate all 4 concentric mineral-sand mandala rings to <span class="font-bold text-[#C85A32]">0°</span> sacred symmetry:
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full">${controlsHtml}</div>
+          </div>
+        `;
+
+        mount.querySelectorAll(".mandala-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.getAttribute("data-idx"));
+            rings[idx].angle = (rings[idx].angle + 90) % 360;
+            playTone(520 + idx * 45, 0.06);
+            render();
+            if (rings.every(r => r.angle === 0)) {
+              completeCurrentStage("All 4 concentric Tibetan sand mandala rings aligned at 0° sacred harmony!");
+            }
+          });
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        rings.forEach(r => { r.angle = 0; });
+        render();
+        completeCurrentStage("Concentric Sand Mandala aligned at 0°!");
+      };
+
+      render();
+    }
+
+    // -------------------------------------------------------------------------
+    // 30. The Masterpiece Gallery Finale (swap 6 interlocking chapter frames into 1..6)
+    // -------------------------------------------------------------------------
+    function buildStage30(mount) {
+      const targetFrames = [
+        { num: 1, title: "I. Sunset Terracotta Canvas", icon: "🎨", wing: "Pigment Wing" },
+        { num: 2, title: "II. Golden Origami Crane", icon: "🦢", wing: "Paper Pavilion" },
+        { num: 3, title: "III. Kintsugi Celadon Bowl", icon: "🏺", wing: "Ceramic Kiln" },
+        { num: 4, title: "IV. Cathedral Rose Window", icon: "🪟", wing: "Glass & Light" },
+        { num: 5, title: "V. Shibori Indigo Tapestry", icon: "🧶", wing: "Fiber & Dye" },
+        { num: 6, title: "VI. Sacred Lotus Sand Mandala", icon: "☸️", wing: "Grand Finale" }
+      ];
+      let frames = [targetFrames[3], targetFrames[0], targetFrames[5], targetFrames[1], targetFrames[4], targetFrames[2]];
+      let selected = null;
+
+      function render() {
+        let html = "";
+        frames.forEach((f, idx) => {
+          const isSel = selected === idx;
+          const isRight = f.num === idx + 1;
+          html += `
+            <button type="button" data-idx="${idx}" class="gallery-frame atelier-btn p-4 rounded-2xl border-4 transition-all flex flex-col items-center text-center gap-1.5 ${
+              isSel
+                ? "border-[#231F20] ring-4 ring-[#D4AF37] bg-white -translate-y-1"
+                : isRight
+                ? "border-[#D4AF37] bg-[#FFFDF7]"
+                : "border-[#C8B99E] bg-white"
+            }">
+              <span class="text-xs font-bold uppercase tracking-wider text-[#C85A32]">Pedestal #${idx + 1}</span>
+              <span class="text-3xl my-1">${f.icon}</span>
+              <span class="font-serif-atelier font-bold text-base text-[#231F20]">${f.title}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full ${
+                isRight ? "bg-[#4A6B5D] text-white font-bold" : "bg-[#F6F0E4] text-[#6E5D4F]"
+              }">
+                ${isRight ? "✓ Curated" : f.wing}
+              </span>
+            </button>
+          `;
+        });
+
+        mount.innerHTML = `
+          <div class="w-full max-w-xl flex flex-col items-center gap-4">
+            <div class="text-xs font-semibold text-[#5C5346] text-center">
+              Click any two gilded frames to swap their pedestals until Masterpieces <span class="font-bold text-[#C85A32]">I through VI hang in order 1 → 6</span>:
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full">${html}</div>
+          </div>
+        `;
+
+        mount.querySelectorAll(".gallery-frame").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.getAttribute("data-idx"));
+            if (selected === null) {
+              selected = idx;
+              playTone(480, 0.05);
+              render();
+            } else if (selected === idx) {
+              selected = null;
+              render();
+            } else {
+              const tmp = frames[selected];
+              frames[selected] = frames[idx];
+              frames[idx] = tmp;
+              selected = null;
+              playTone(620, 0.08);
+              render();
+              if (frames.every((f, i) => f.num === i + 1)) {
+                completeCurrentStage("All 6 Chapter Masterpieces curated in sequence 1 to 6! Happy Treasure Hunt, Anamika!");
+              }
+            }
+          });
+        });
+      }
+
+      currentAutoSolveFn = () => {
+        frames = [...targetFrames];
+        selected = null;
+        render();
+        completeCurrentStage("Grand Salon Gallery curated in order 1 to 6! All 30 Gifts Unlocked!");
+      };
+
+      render();
+    }
+
+    // =========================================================================
+    // GIFT VAULT RENDERER
+    // =========================================================================
+    function renderVaultModal() {
+      const grid = document.getElementById("vault-grid");
+      grid.innerHTML = "";
+      STATIONS.forEach(st => {
+        const unlocked = !!appState.unlocked[st.id];
+        const card = document.createElement("div");
+        card.className = `p-4 rounded-xl border flex flex-col justify-between gap-2 ${
+          unlocked ? "bg-white border-[#D4AF37] shadow-sm" : "bg-[#F6F0E4]/70 border-[#E5DEC9] opacity-75"
+        }`;
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between text-xs font-bold">
+              <span class="text-[#C85A32]">Gift #${st.id} • ${st.title}</span>
+              <span>${unlocked ? "🎁 Unsealed" : "🔒 Locked"}</span>
+            </div>
+            <div class="mt-2 flex items-center gap-2.5">
+              <div class="w-10 h-10 rounded-lg ${
+                unlocked ? "bg-gradient-to-br from-[#C85A32] to-[#D4AF37] text-white" : "bg-[#E5DEC9] text-[#6E5D4F]"
+              } flex items-center justify-center text-xl shrink-0">
+                ${unlocked ? st.giftIcon : "🔒"}
+              </div>
+              <div class="font-serif-atelier font-bold text-base text-[#231F20] leading-snug">
+                ${unlocked ? st.giftTitle : "Complete Station #" + st.id + " to Reveal"}
+              </div>
+            </div>
+            <p class="text-xs text-[#5C5346] mt-2 italic">
+              ${unlocked ? `"${st.giftNote}"` : st.subtitle}
+            </p>
+          </div>
+          <button type="button" data-goto="${st.id}" class="vault-goto atelier-btn mt-2 w-full py-1.5 rounded-lg bg-[#F6F0E4] hover:bg-[#E5DEC9] text-xs font-semibold text-[#231F20]">
+            Visit Station #${st.id} →
+          </button>
+        `;
+        grid.appendChild(card);
+      });
+
+      grid.querySelectorAll(".vault-goto").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const target = Number(btn.getAttribute("data-goto"));
+          document.getElementById("vault-modal").classList.add("hidden");
+          goToStage(target);
+        });
+      });
+    }
+
+    // =========================================================================
+    // WIRE GLOBAL BUTTONS & INITIALIZE
+    // =========================================================================
+    window.addEventListener("DOMContentLoaded", () => {
+      loadProgress();
+      updateChrome();
+      renderCurrentStage();
+
+      document.getElementById("btn-prev-stage").addEventListener("click", () => {
+        playTone(440, 0.05);
+        goToStage(appState.currentStage > 1 ? appState.currentStage - 1 : 30);
+      });
+
+      document.getElementById("btn-next-stage").addEventListener("click", () => {
+        playTone(500, 0.05);
+        goToStage(appState.currentStage < 30 ? appState.currentStage + 1 : 1);
+      });
+
+      document.getElementById("btn-stage-reset").addEventListener("click", () => {
+        playTone(340, 0.07);
+        renderCurrentStage();
+      });
+
+      document.getElementById("btn-stage-hint").addEventListener("click", () => {
+        playTone(560, 0.06);
+        const box = document.getElementById("hint-box");
+        box.classList.toggle("hidden");
+      });
+
+      document.getElementById("btn-stage-autosolve").addEventListener("click", () => {
+        if (typeof currentAutoSolveFn === "function") {
+          currentAutoSolveFn();
+        }
+      });
+
+      document.getElementById("btn-toggle-sound").addEventListener("click", () => {
+        appState.soundEnabled = !appState.soundEnabled;
+        saveProgress();
+        document.getElementById("btn-toggle-sound").textContent =
+          appState.soundEnabled ? "🔊 Sound On" : "🔇 Muted";
+        if (appState.soundEnabled) playTone(580, 0.08);
+      });
+
+      document.getElementById("btn-modal-stay").addEventListener("click", () => {
+        document.getElementById("unlock-modal").classList.add("hidden");
+      });
+
+      document.getElementById("btn-modal-next").addEventListener("click", () => {
+        document.getElementById("unlock-modal").classList.add("hidden");
+        if (appState.currentStage < 30) {
+          goToStage(appState.currentStage + 1);
+        } else {
+          renderVaultModal();
+          document.getElementById("vault-modal").classList.remove("hidden");
+        }
+      });
+
+      document.getElementById("btn-open-vault").addEventListener("click", () => {
+        playTone(520, 0.06);
+        renderVaultModal();
+        document.getElementById("vault-modal").classList.remove("hidden");
+      });
+
+      document.getElementById("btn-close-vault").addEventListener("click", () => {
+        document.getElementById("vault-modal").classList.add("hidden");
+      });
+
+      document.getElementById("btn-vault-unlock-all").addEventListener("click", () => {
+        for (let i = 1; i <= 30; i++) appState.unlocked[i] = true;
+        saveProgress();
+        updateChrome();
+        renderVaultModal();
+        playUnlockFanfare();
+        launchConfetti();
+      });
+
+      document.getElementById("btn-vault-reset-all").addEventListener("click", () => {
+        appState.unlocked = {};
+        saveProgress();
+        updateChrome();
+        renderVaultModal();
+        renderCurrentStage();
+      });
+    });
+  </script>
+</body>
+</html>
