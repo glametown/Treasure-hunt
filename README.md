@@ -1,14 +1,25 @@
-# The 30-Gift Starlit Treasure Hunt 🎁✨
+# Anamika's 30-Gift Art & Craft Atelier Treasure Hunt 🎁🎨
 
-A custom 30-stage interactive puzzle & treasure hunt web app.
+A single-file interactive treasure hunt: 30 hands-on craft mini-games (6 chapters × 5 stations). Solve each station to unseal a gift card.
 
-## Live Website (GitHub Pages)
-Once GitHub Pages is enabled under **Settings → Pages** (Branch: `main`, Folder: `/ (root)`), the live site is available at:
-`https://glametown.github.io/Treasure-hunt/`
+## Live website (GitHub Pages)
+`https://glametown.github.io/Treasure-hunt/` (Settings → Pages → Branch: `main`, Folder: `/ (root)`)
 
-## Organizer Setup (PIN: `3030`)
-Click **⚙️ Setup & Host** in the top navigation bar and enter PIN `3030` to:
-- Customize her name and website title
-- Switch between **Mode A (Direct Unlock)** and **Mode B (Chained Second-Puzzle Lock)**
-- Customize hiding spot clues, love notes, and accepted answers for all 30 gifts
-- Download an updated `index.html` with your changes baked in
+## How it works
+- Everything lives in `index.html` — no build step needed to run it, and no external CDN is required for the layout (the Tailwind CSS is precompiled and inlined; only the Google Fonts are optional and fall back to system fonts).
+- Works on phones and desktops. Progress and sound preference are saved in the browser's `localStorage`.
+- Chapters: I Pigment & Brush · II Paper & Origami · III Clay & Tactile Kiln · IV Glass, Light & Shadow · V Fiber, Loom & Dye · VI Darkroom & Finale.
+
+## Organizer shortcuts (visible in the UI)
+- **✨ Studio Master Key** on each station auto-completes it.
+- **Gift Vault → Unlock All 30 (Preview)** unseals every gift; **Reset All Progress** starts over.
+
+## Editing the gifts / stations
+Station text, gift names and gift notes are in the `STATIONS` array near the top of the `<script>` in `index.html`.
+
+### Changing styles
+Utility classes are compiled with Tailwind CSS 3.4 and inlined in `<style id="tw-compiled">`. If you add new Tailwind classes, recompile:
+```bash
+npx tailwindcss@3.4.17 -i input.css -o out.css --minify   # content: index.html, input.css = the three @tailwind directives
+```
+then paste the output into the `tw-compiled` style block.
