@@ -5080,9 +5080,9 @@
       ids.forEach(id => {
         const g = el(id);
         g.addEventListener("pointerdown", e => {
-          if (solved) return; e.preventDefault(); g.setPointerCapture(e.pointerId);
+          if (solved) return; e.preventDefault(); layer.appendChild(g); g.setPointerCapture(e.pointerId);
           const cur = g.transform.baseVal.consolidate().matrix, p0 = toSvg(e), ox = cur.e - p0.x, oy = cur.f - p0.y;
-          placed.delete(id); layer.appendChild(g); g.style.filter = "drop-shadow(0 6px 6px rgba(0,0,0,.3))"; g.style.cursor = "grabbing";
+          placed.delete(id); g.style.filter = "drop-shadow(0 6px 6px rgba(0,0,0,.3))"; g.style.cursor = "grabbing";
           const mv = ev => { const p = toSvg(ev); setPos(id, TK.clamp(p.x + ox, 10, W - 10), TK.clamp(p.y + oy, 10, H - 10), false); };
           const up = () => {
             g.removeEventListener("pointermove", mv); g.removeEventListener("pointerup", up); g.removeEventListener("pointercancel", up);
