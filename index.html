@@ -5205,6 +5205,131 @@
       draw();
       currentAutoSolveFn = () => { if (solved) return; sol.forEach((r, i) => r.forEach((v, j) => { st[i][j] = v ? 1 : 0; })); draw(); check(); };
     }
+
+    STATION_PATCH[9] = {
+      title: "Origami Fold Studio",
+      subtitle: "Fold a square sheet until its shape matches the dashed outline.",
+      mechanic: "Real Paper Folding",
+      instructions: "Drag from one paper point (a corner or the middle of an edge) onto another, and the paper folds so the first lands exactly on the second. Your goal is to make the folded shape cover the dashed target outline. It takes only a few folds. Undo if a fold goes wrong.",
+      hint: "Try folding corner to opposite corner first. Then think about which point could land on the middle of the long edge. A last fold brings two corners together."
+    };
+
+    function buildStage9(mount) {
+      const W = 540, H = 300, X0 = 160, Y0 = 40, S = 220;
+      const sq = () => [[{ pts: [[X0, Y0], [X0 + S, Y0], [X0 + S, Y0 + S], [X0, Y0 + S]], flip: false }]][0];
+      const clip = (poly, nx, ny, mx, my, neg) => {
+        const f = p => ((p[0] - mx) * nx + (p[1] - my) * ny) * (neg ? -1 : 1);
+        const out = [];
+        for (let i = 0; i < poly.length; i++) {
+          const c = poly[i], p = poly[(i + poly.length - 1) % poly.length], fc = f(c), fp = f(p);
+          const cut = () => { const t = fp / (fp - fc); return [p[0] + (c[0] - p[0]) * t, p[1] + (c[1] - p[1]) * t]; };
+          if (fc >= 0) { if (fp < 0) out.push(cut()); out.push(c); } else if (fp >= 0) out.push(cut());
+        }
+        return out;
+      };
+      const area = poly => { let a = 0; poly.forEach((p, i) => { const q = poly[(i + 1) % poly.length]; a += p[0] * q[1] - q[0] * p[1]; }); return Math.abs(a / 2); };
+      const doFold = (layers, p, q) => {
+        const dx = q[0] - p[0], dy = q[1] - p[1], d = Math.hypot(dx, dy), nx = dx / d, ny = dy / d, mx = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2;
+        const stay = [], moved = [];
+        layers.forEach(l => {
+          const a = clip(l.pts, nx, ny, mx, my, false), b = clip(l.pts, nx, ny, mx, my, true);
+          if (a.length >= 3 && area(a) > 4) stay.push({ pts: a, flip: l.flip });
+          if (b.length >= 3 && area(b) > 4) moved.push({ pts: b.map(([x, y]) => { const sd = (x - mx) * nx + (y - my) * ny; return [x - 2 * sd * nx, y - 2 * sd * ny]; }), flip: !l.flip });
+        });
+        return stay.concat(moved.reverse());
+      };
+      const inPoly = (pt, poly) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], b = poly[j]; if ((a[1] > pt[1]) !== (b[1] > pt[1]) && pt[0] < (b[0] - a[0]) * (pt[1] - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; };
+      const inAny = (pt, layers) => layers.some(l => inPoly(pt, l.pts));
+      const A = [X0, Y0], B = [X0 + S, Y0], C = [X0 + S, Y0 + S], D = [X0, Y0 + S], M = [X0 + S / 2, Y0 + S / 2];
+      // target = the shape made by the intended three folds
+      let target = sq();
+      target = doFold(target, A, C); target = doFold(target, C, M); target = doFold(target, B, D);
+      const mismatch = layers => {
+        let x = 0, u = 0;
+        for (let px = X0 - 10; px < X0 + S + 10; px += 4) for (let py = Y0 - 10; py < Y0 + S + 10; py += 4) {
+          const a = inAny([px, py], layers), b = inAny([px, py], target);
+          if (a || b) u++; if (a !== b) x++;
+        }
+        return x / Math.max(1, u);
+      };
+      const hull = pts => {
+        const P = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]), cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+        const lo = [], up = [];
+        P.forEach(p => { while (lo.length > 1 && cr(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop(); lo.push(p); });
+        P.slice().reverse().forEach(p => { while (up.length > 1 && cr(up[up.length - 2], up[up.length - 1], p) <= 0) up.pop(); up.push(p); });
+        return lo.slice(0, -1).concat(up.slice(0, -1));
+      };
+      const targetHull = hull(target.flatMap(l => l.pts));
+
+      let layers = sq(), history = [], solved = false;
+      mount.innerHTML = `
+        <div class="s9-root w-full max-w-xl flex flex-col items-center gap-3">
+          <div class="w-full rounded-2xl overflow-hidden border-2 border-[#CFC3A8] shadow-md tk-noselect" style="background:#FBF6EA">
+            <svg class="s9-svg block w-full" viewBox="0 0 ${W} ${H}" style="touch-action:none">
+              <g class="s9-paper"></g>
+              <polygon points="${targetHull.map(p => p.join(",")).join(" ")}" fill="rgba(255,255,255,.12)" stroke="#1F3A8A" stroke-width="2.5" stroke-dasharray="7 6" stroke-linejoin="round"/>
+              <g class="s9-guide"></g>
+              <g class="s9-marks"></g>
+            </svg>
+          </div>
+          <div class="tk-status">Drag one paper point onto another to fold.</div>
+          <div class="flex gap-2 items-center">
+            <button class="s9-undo px-3 py-2 rounded-xl border border-[#CFC3A8] bg-white text-sm text-[#5C5346]">↶ Undo fold</button>
+            <button class="s9-reset px-3 py-2 rounded-xl border border-[#CFC3A8] bg-white text-sm text-[#5C5346]">New sheet</button>
+            <span class="s9-count text-xs text-[#8C7A6B]">Folds: 0</span>
+          </div>
+        </div>`;
+      const root = mount.querySelector(".s9-root"), svgEl = mount.querySelector(".s9-svg"), gP = mount.querySelector(".s9-paper"), gG = mount.querySelector(".s9-guide"), gM = mount.querySelector(".s9-marks");
+      const say = (m, k) => TK.status(root, m, k);
+      const markers = () => {
+        const out = [];
+        const add = p => { if (!out.some(o => Math.hypot(o[0] - p[0], o[1] - p[1]) < 5)) out.push(p); };
+        layers.forEach(l => l.pts.forEach((p, i) => { add(p); const q = l.pts[(i + 1) % l.pts.length]; add([(p[0] + q[0]) / 2, (p[1] + q[1]) / 2]); }));
+        return out;
+      };
+      const pts2s = pts => pts.map(p => p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ");
+      const render = () => {
+        gP.innerHTML = layers.map(l => `<polygon points="${pts2s(l.pts)}" fill="${l.flip ? "#F6E7C1" : "#D96C86"}" stroke="${l.flip ? "#C9B07A" : "#A8445E"}" stroke-width="1.5" stroke-linejoin="round"/>`).join("");
+        gM.innerHTML = solved ? "" : markers().map(m => `<circle cx="${m[0]}" cy="${m[1]}" r="5.5" fill="#FFFFFF" stroke="#283655" stroke-width="2" opacity=".9"/>`).join("");
+        mount.querySelector(".s9-count").textContent = "Folds: " + history.length;
+      };
+      const toSvg = e => { const pt = svgEl.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const r = pt.matrixTransform(svgEl.getScreenCTM().inverse()); return [r.x, r.y]; };
+      const nearest = p => { let best = null, bd = 1e9; markers().forEach(m => { const d = Math.hypot(m[0] - p[0], m[1] - p[1]); if (d < bd) { bd = d; best = m; } }); return [best, bd]; };
+
+      function applyFold(p, q) {
+        history.push(layers); layers = doFold(layers, p, q); render();
+        const mm = mismatch(layers);
+        if (mm <= 0.03) { solved = true; render(); say("That's the shape! 🦢", "ok"); TK.win("You folded the sheet into exactly the target shape!", 1000); }
+        else say(history.length >= 5 ? "Not matching yet. Undo a fold or start a new sheet." : `Fold ${history.length} made. Compare with the dashed outline.`, "info");
+      }
+      let from = null;
+      svgEl.addEventListener("pointerdown", e => {
+        if (solved) return;
+        const p = toSvg(e), [m, d] = nearest(p); if (d > 26) return;
+        e.preventDefault(); svgEl.setPointerCapture(e.pointerId); from = m;
+      });
+      svgEl.addEventListener("pointermove", e => {
+        if (!from) return;
+        const p = toSvg(e), [m, d] = nearest(p), to = d <= 26 ? m : p;
+        gG.innerHTML = `<line x1="${from[0]}" y1="${from[1]}" x2="${p[0]}" y2="${p[1]}" stroke="#283655" stroke-width="2" stroke-dasharray="4 4"/>` +
+          (d <= 26 && Math.hypot(m[0] - from[0], m[1] - from[1]) > 6 ? `<circle cx="${m[0]}" cy="${m[1]}" r="10" fill="none" stroke="#2E7D4F" stroke-width="3"/>` : "");
+      });
+      const up = e => {
+        if (!from) return; gG.innerHTML = "";
+        const p = toSvg(e), [m, d] = nearest(p), f = from; from = null;
+        if (d > 26 || Math.hypot(m[0] - f[0], m[1] - f[1]) < 8) { say("Drop on a different paper point (the white dots).", "info"); return; }
+        applyFold(f, m);
+      };
+      svgEl.addEventListener("pointerup", up); svgEl.addEventListener("pointercancel", () => { from = null; gG.innerHTML = ""; });
+      mount.querySelector(".s9-undo").onclick = () => { if (solved || !history.length) return; layers = history.pop(); render(); say("Fold undone.", "info"); };
+      mount.querySelector(".s9-reset").onclick = () => { if (solved) return; layers = sq(); history = []; render(); say("A fresh sheet. Drag one paper point onto another to fold.", "info"); };
+      render();
+      currentAutoSolveFn = () => {
+        if (solved) return;
+        layers = sq(); history = [];
+        layers = doFold(layers, A, C); layers = doFold(layers, C, M); history = [1, 2]; applyFold(B, D);
+      };
+    }
     // ##### PART ch2 END #####
 
     // ##### PART ch3 BEGIN #####
