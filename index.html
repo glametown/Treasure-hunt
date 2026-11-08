@@ -4595,6 +4595,107 @@
         solved = true; TK.win("Your mirrored hand drew a perfect heart!", 900);
       };
     }
+
+    STATION_PATCH[3] = {
+      title: "The Mirror Pantograph",
+      subtitle: "Trace one wing and the pantograph paints the other.",
+      mechanic: "Mirrored Tracing",
+      instructions: "Half a butterfly is sketched in dotted ink on the left. Trace both dotted wings with your finger in one steady hand, and the pantograph will mirror every line onto the right. Cover the dotted line to finish.",
+      hint: "Go slowly and follow the dots closely. You can lift your finger between the upper and lower wing. If it gets messy, wipe the page and begin again."
+    };
+
+    function buildStage3(mount) {
+      const W = 540, H = 300, AX = 270;
+      const GUIDES = [
+        "M270 118 C 230 40, 120 10, 70 60 C 40 100, 80 150, 150 156 C 200 160, 245 150, 270 146",
+        "M270 164 C 235 168, 160 180, 130 220 C 110 255, 160 275, 205 258 C 240 245, 262 220, 270 208"
+      ];
+      mount.innerHTML = `
+        <div class="s3-root w-full max-w-xl flex flex-col items-center gap-3">
+          <div class="relative w-full rounded-2xl overflow-hidden border-2 border-[#CFC3A8] shadow-md tk-noselect" style="aspect-ratio:${W}/${H}; background:#FBF6EA">
+            <svg viewBox="0 0 ${W} ${H}" class="s3-guide absolute inset-0 w-full h-full" aria-hidden="true">
+              <line x1="${AX}" y1="10" x2="${AX}" y2="${H - 10}" stroke="#B89F6B" stroke-width="2" stroke-dasharray="2 8" stroke-linecap="round"/>
+              <rect x="${AX - 3}" y="118" width="6" height="90" rx="3" fill="#B89F6B" opacity=".5"/>
+              ${GUIDES.map(d => `<path class="s3-gp" d="${d}" fill="none" stroke="#8C7A6B" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round"/>`).join("")}
+              <text x="${AX - 14}" y="${H - 8}" text-anchor="end" font-size="11" fill="#8C7A6B">your hand</text>
+              <text x="${AX + 14}" y="${H - 8}" font-size="11" fill="#8C7A6B">the pantograph</text>
+            </svg>
+            <canvas class="s3-ink tk-canvas absolute inset-0" width="${W}" height="${H}" style="height:100%"></canvas>
+          </div>
+          <div class="tk-status">Trace the dotted wings on the left side.</div>
+          <div class="flex gap-2"><button class="s3-wipe px-3 py-2 rounded-xl border border-[#CFC3A8] bg-white text-sm text-[#5C5346]">Wipe the page</button></div>
+        </div>`;
+      const root = mount.querySelector(".s3-root"), ink = mount.querySelector(".s3-ink"), g = ink.getContext("2d");
+      const say = (m, k) => TK.status(root, m, k);
+      let solved = false;
+
+      // sample guide points
+      const gp = [];
+      mount.querySelectorAll(".s3-gp").forEach(p => {
+        const L = p.getTotalLength();
+        for (let l = 0; l <= L; l += 7) { const q = p.getPointAtLength(l); gp.push([q.x, q.y]); }
+      });
+      const covered = new Array(gp.length).fill(false);
+      let samples = [];
+
+      const stroke = (a, b) => {
+        const wing = (x0, y0, x1, y1, col) => {
+          g.strokeStyle = col; g.lineWidth = 4; g.lineCap = "round"; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
+        };
+        wing(a.x, a.y, b.x, b.y, "#5B2A6E");
+        wing(2 * AX - a.x, a.y, 2 * AX - b.x, b.y, "#C0427A");
+      };
+      const mark = p => {
+        samples.push(p);
+        for (let i = 0; i < gp.length; i++) if (!covered[i] && TK.dist(p.x, p.y, gp[i][0], gp[i][1]) < 15) covered[i] = true;
+      };
+      const frac = () => covered.filter(Boolean).length / gp.length;
+      const stray = () => {
+        if (!samples.length) return 0;
+        let bad = 0;
+        samples.forEach(p => { let m = 1e9; for (let i = 0; i < gp.length; i++) { const d = TK.dist(p.x, p.y, gp[i][0], gp[i][1]); if (d < m) m = d; } if (m > 30) bad++; });
+        return bad / samples.length;
+      };
+      const clampPt = c => ({ x: Math.min(c.x, AX - 2), y: c.y });
+      let last = null, acc = 0;
+
+      TK.drag(ink, {
+        onStart(p, e) {
+          if (solved) return false;
+          const c = TK.canvasPt(ink, e);
+          if (c.x > AX) { say("Draw on the left side. The pantograph does the right.", "info"); return false; }
+          last = c; acc = 0; mark(c); stroke(c, c); return true;
+        },
+        onMove(p, e) {
+          const c = clampPt(TK.canvasPt(ink, e));
+          stroke(last, c);
+          const d = TK.dist(last.x, last.y, c.x, c.y); acc += d;
+          const n = Math.max(1, Math.ceil(d / 5));
+          for (let i = 1; i <= n; i++) mark({ x: TK.lerp(last.x, c.x, i / n), y: TK.lerp(last.y, c.y, i / n) });
+          last = c;
+        },
+        onEnd() { check(); }
+      });
+
+      function check() {
+        if (solved) return;
+        const f = frac(), s = stray();
+        if (f >= 0.88 && s <= 0.2) {
+          solved = true; say("A perfect butterfly! ✨", "ok");
+          TK.win("You traced one wing and the pantograph finished the butterfly!", 1000);
+        } else if (f >= 0.88) say("All covered, but there's a lot of stray ink. Wipe the page and trace more closely.", "warn");
+        else say(`${Math.round(f * 100)}% of the dotted wings traced. Keep following the dots.`, "info");
+      }
+      mount.querySelector(".s3-wipe").onclick = () => { g.clearRect(0, 0, W, H); covered.fill(false); samples = []; say("Fresh page. Trace the dotted wings on the left.", "info"); };
+
+      currentAutoSolveFn = () => {
+        if (solved) return;
+        let prev = null;
+        gp.forEach(q => { const c = { x: q[0], y: q[1] }; if (prev && TK.dist(prev.x, prev.y, c.x, c.y) < 12) stroke(prev, c); prev = c; covered.fill(true); });
+        samples = gp.map(q => ({ x: q[0], y: q[1] }));
+        check();
+      };
+    }
     // ##### PART ch1 END #####
 
     // ##### PART ch2 BEGIN #####
