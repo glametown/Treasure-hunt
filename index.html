@@ -4794,6 +4794,93 @@
         fold();
       };
     }
+
+    STATION_PATCH[5] = {
+      title: "Calligraphy Flourish",
+      subtitle: "Follow the swash from the gold dot to the red seal in one flowing line.",
+      mechanic: "Nib Tracing",
+      instructions: "A dotted flourish winds across the page. Put your finger on the gold dot and follow the swash in order to the red seal. Your nib swells when you move slowly and thins when you speed up.",
+      hint: "Start exactly on the gold dot. The line loops back on itself, so go slowly through the loops and stay on the dots. If you lift off, restart near where you stopped."
+    };
+
+    function buildStage5(mount) {
+      const W = 540, H = 300;
+      const D = "M40 220 C 90 60, 190 40, 200 130 C 208 210, 110 200, 130 130 C 150 60, 300 60, 330 150 C 355 225, 430 240, 500 80";
+      mount.innerHTML = `
+        <div class="s5-root w-full max-w-xl flex flex-col items-center gap-3">
+          <div class="relative w-full rounded-2xl overflow-hidden border-2 border-[#CFC3A8] shadow-md tk-noselect" style="aspect-ratio:${W}/${H}; background:#FBF6EA">
+            <svg viewBox="0 0 ${W} ${H}" class="absolute inset-0 w-full h-full" aria-hidden="true">
+              <g stroke="#E6DCC3" stroke-width="1"><line x1="0" y1="260" x2="${W}" y2="260"/><line x1="0" y1="40" x2="${W}" y2="40"/></g>
+              <path class="s5-gp" d="${D}" fill="none" stroke="#8C7A6B" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round"/>
+              <circle class="s5-start" cx="40" cy="220" r="9" fill="#D4AF37" stroke="#8A6D12" stroke-width="1.5"/>
+              <rect x="489" y="69" width="22" height="22" rx="4" fill="#B3261E" transform="rotate(6 500 80)"/>
+            </svg>
+            <canvas class="s5-ink tk-canvas absolute inset-0" width="${W}" height="${H}" style="height:100%"></canvas>
+          </div>
+          <div class="tk-status">Start on the gold dot and follow the swash in order.</div>
+          <div class="flex gap-2"><button class="s5-wipe px-3 py-2 rounded-xl border border-[#CFC3A8] bg-white text-sm text-[#5C5346]">Fresh page</button></div>
+        </div>`;
+      const root = mount.querySelector(".s5-root"), cv = mount.querySelector(".s5-ink"), g = cv.getContext("2d");
+      const say = (m, k) => TK.status(root, m, k);
+      let solved = false;
+      const path = mount.querySelector(".s5-gp"), L = path.getTotalLength(), gp = [];
+      for (let l = 0; l <= L; l += 6) { const q = path.getPointAtLength(l); gp.push([q.x, q.y]); }
+      gp.push([500, 80]);
+      let prog = 0, samples = [];
+
+      const seg = (a, b, w) => { g.strokeStyle = "#2B1B12"; g.lineCap = "round"; g.lineWidth = w; g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke(); };
+      const advance = c => {
+        let best = -1, bd = 1e9;
+        for (let i = prog; i < Math.min(gp.length, prog + 10); i++) { const d = TK.dist(c.x, c.y, gp[i][0], gp[i][1]); if (d < bd) { bd = d; best = i; } }
+        if (bd < 16) prog = best;
+      };
+      const strayFrac = () => {
+        if (!samples.length) return 0;
+        let bad = 0;
+        samples.forEach(p => { let m = 1e9; for (const q of gp) { const d = TK.dist(p.x, p.y, q[0], q[1]); if (d < m) m = d; } if (m > 28) bad++; });
+        return bad / samples.length;
+      };
+      let last = null, lastT = 0, lw = 8;
+      TK.drag(cv, {
+        onStart(p, e) {
+          if (solved) return false;
+          const c = TK.canvasPt(cv, e);
+          if (TK.dist(c.x, c.y, gp[prog][0], gp[prog][1]) > 26) {
+            say(prog === 0 ? "Begin on the gold dot." : "Restart near where your line ended.", "info");
+            return false;
+          }
+          last = c; lastT = performance.now(); lw = 7; seg(c, c, lw); samples.push(c); advance(c); return true;
+        },
+        onMove(p, e) {
+          const c = TK.canvasPt(cv, e), now = performance.now(), d = TK.dist(last.x, last.y, c.x, c.y);
+          const speed = d / Math.max(8, now - lastT) * 16;
+          lw = TK.lerp(lw, TK.clamp(14 - speed * 0.8, 2.5, 14), 0.3);
+          const n = Math.max(1, Math.ceil(d / 4));
+          for (let i = 1; i <= n; i++) {
+            const a = { x: TK.lerp(last.x, c.x, (i - 1) / n), y: TK.lerp(last.y, c.y, (i - 1) / n) };
+            const b = { x: TK.lerp(last.x, c.x, i / n), y: TK.lerp(last.y, c.y, i / n) };
+            seg(a, b, lw); samples.push(b); advance(b);
+          }
+          last = c; lastT = now;
+        },
+        onEnd() { check(); }
+      });
+      function check() {
+        if (solved) return;
+        const f = prog / (gp.length - 1);
+        if (f >= 0.96) {
+          if (strayFrac() > 0.2) { say("You reached the seal, but the line wandered off the dots. Fresh page and try more carefully.", "warn"); return; }
+          solved = true; say("Beautiful flourish! 🖋️", "ok");
+          TK.win("You followed the whole swash with one flowing nib line!", 1000);
+        } else say(`${Math.round(f * 100)}% of the flourish. Continue from where your line ended.`, "info");
+      }
+      mount.querySelector(".s5-wipe").onclick = () => { if (solved) return; g.clearRect(0, 0, W, H); prog = 0; samples = []; say("Fresh page. Start on the gold dot.", "info"); };
+      currentAutoSolveFn = () => {
+        if (solved) return;
+        let prev = null; gp.forEach(q => { const c = { x: q[0], y: q[1] }; if (prev) seg(prev, c, 6); prev = c; });
+        prog = gp.length - 1; samples = gp.map(q => ({ x: q[0], y: q[1] })); check();
+      };
+    }
     // ##### PART ch1 END #####
 
     // ##### PART ch2 BEGIN #####
