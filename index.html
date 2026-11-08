@@ -4493,6 +4493,108 @@
         finish();
       };
     }
+
+    STATION_PATCH[3] = {
+      title: "The Mirror Pantograph",
+      subtitle: "A drawing arm copies your hand in reverse. Make the copy trace the dotted heart.",
+      mechanic: "Mirrored Tracing",
+      instructions: "A pantograph is a drawing arm that copies your hand's every move. This one is mirrored: you draw on the left side of the sheet and the copy appears on the right. Guide the copy along the dotted heart. Lift your finger to start a new stroke.",
+      hint: "Whatever you do on the left is flipped. If you move toward the middle, the copy moves toward the middle too. Start at the top dip of the heart and work around, slowly."
+    };
+
+    function buildStage3(mount) {
+      const W = 540, H = 300, AX = 270;
+      // dotted guide: right half of a heart curve
+      const guide = [];
+      for (let i = 0; i <= 160; i++) {
+        const t = Math.PI * i / 160, s = Math.sin(t);
+        const hx = 16 * s * s * s, hy = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+        guide.push([AX + 7 * hx, 150 - 7 * (hy + 2.5)]);
+      }
+      const guidePath = "M" + guide.map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" L");
+      const COVER_R = 11, STRAY_R = 26;
+
+      mount.innerHTML = `
+        <div class="s3-root w-full max-w-xl flex flex-col items-center gap-3">
+          <div class="relative w-full rounded-2xl overflow-hidden border-2 border-[#CFC3A8] shadow-md tk-noselect" style="aspect-ratio:${W}/${H}; background:#FBF6EA">
+            <svg viewBox="0 0 ${W} ${H}" class="absolute inset-0 w-full h-full" aria-hidden="true">
+              <rect x="0" y="0" width="${AX}" height="${H}" fill="#F3EAD3" opacity=".7"/>
+              <path d="${guidePath}" fill="none" stroke="#C0392B" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round" opacity=".75"/>
+              <line x1="${AX}" y1="0" x2="${AX}" y2="${H}" stroke="#B9A67E" stroke-width="2" stroke-dasharray="7 6"/>
+              <g fill="#8A6A3A"><circle cx="${AX}" cy="10" r="5"/><circle cx="${AX}" cy="${H - 10}" r="5"/></g>
+              <text x="${AX / 2}" y="${H - 10}" text-anchor="middle" font-size="13" fill="#A79468" font-family="serif">your hand</text>
+              <text x="${AX + AX / 2}" y="${H - 10}" text-anchor="middle" font-size="13" fill="#A79468" font-family="serif">the copy</text>
+            </svg>
+            <canvas class="s3-ink tk-canvas absolute inset-0" width="${W}" height="${H}" style="height:100%"></canvas>
+            <div class="s3-pen absolute pointer-events-none rounded-full" style="display:none;width:14px;height:14px;background:#C0392B;box-shadow:0 0 0 3px rgba(192,57,43,.25)"></div>
+          </div>
+          <div class="tk-status">Draw on the left. Watch where the copy goes.</div>
+          <div class="flex gap-2"><button type="button" class="s3-clear px-4 py-2 rounded-xl bg-white border border-[#CFC3A8] text-sm font-semibold text-[#5C5346]">Clear the sheet</button></div>
+        </div>`;
+
+      const root = mount.querySelector(".s3-root"), cv = mount.querySelector(".s3-ink"), pen = mount.querySelector(".s3-pen");
+      const g = cv.getContext("2d"); g.lineCap = "round"; g.lineJoin = "round";
+      const say = (m, k) => TK.status(root, m, k);
+      let ink = [], solved = false, last = null, hue = 0;
+
+      const seg = (a, b) => {
+        g.lineWidth = 6; g.strokeStyle = "#3A322B";
+        g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke();
+        g.lineWidth = 6; g.strokeStyle = TK.hsl ? TK.hsl(hue, 70, 45) : "#C0392B";
+        g.beginPath(); g.moveTo(W - a.x, a.y); g.lineTo(W - b.x, b.y); g.stroke();
+      };
+      const addInk = (a, b) => {
+        const d = TK.dist(a.x, a.y, b.x, b.y), n = Math.max(1, Math.ceil(d / 4));
+        for (let i = 1; i <= n; i++) ink.push([W - TK.lerp(a.x, b.x, i / n), TK.lerp(a.y, b.y, i / n)]);
+      };
+      const near = (p, r) => guide.some(q => (q[0] - p[0]) ** 2 + (q[1] - p[1]) ** 2 <= r * r);
+      function score() {
+        let cov = 0;
+        guide.forEach(q => { if (ink.some(p => (q[0] - p[0]) ** 2 + (q[1] - p[1]) ** 2 <= COVER_R * COVER_R)) cov++; });
+        const stray = ink.length ? ink.filter(p => !near(p, STRAY_R)).length / ink.length : 0;
+        return { cov: cov / guide.length, stray };
+      }
+      function check() {
+        if (solved || !ink.length) return;
+        const { cov, stray } = score();
+        if (cov >= 0.85 && stray <= 0.3) {
+          solved = true; say("The copy hugs the heart perfectly! ❤", "ok");
+          TK.win("Your mirrored hand drew a perfect heart!", 900);
+        } else if (cov >= 0.85) say("Heart traced, but too much ink wandered off. Clear the sheet and try again.", "warn");
+        else if (cov >= 0.45) say("Getting there. Some of the heart is still bare.", "info");
+      }
+      const clampPt = c => ({ x: Math.min(c.x, AX - 1), y: c.y });
+      const placePen = (e, on) => {
+        if (!on) { pen.style.display = "none"; return; }
+        const r = cv.getBoundingClientRect(), s = r.width / W, c = TK.canvasPt(cv, e);
+        pen.style.cssText += `;display:block;left:${(W - Math.min(c.x, AX - 1)) * s - 7}px;top:${c.y * s - 7}px`;
+      };
+      TK.drag(cv, {
+        onStart(p, e) {
+          if (solved) return false;
+          const c = TK.canvasPt(cv, e);
+          if (c.x >= AX) { say("Use the left side. That's your hand.", "warn"); return false; }
+          last = c; hue = (hue + 47) % 360; seg(c, c); addInk(c, c); placePen(e, true); return true;
+        },
+        onMove(p, e) {
+          const c = clampPt(TK.canvasPt(cv, e));
+          seg(last, c); addInk(last, c); last = c; placePen(e, true);
+        },
+        onEnd(p, e) { placePen(e, false); check(); }
+      });
+      mount.querySelector(".s3-clear").addEventListener("click", () => {
+        if (solved) return; g.clearRect(0, 0, W, H); ink = []; say("Fresh sheet. Draw on the left.", "info");
+      });
+      currentAutoSolveFn = () => {
+        if (solved) return;
+        g.clearRect(0, 0, W, H); ink = [];
+        for (let i = 1; i < guide.length; i++) {
+          const a = { x: W - guide[i - 1][0], y: guide[i - 1][1] }, b = { x: W - guide[i][0], y: guide[i][1] };
+          seg(a, b); addInk(a, b);
+        }
+        solved = true; TK.win("Your mirrored hand drew a perfect heart!", 900);
+      };
+    }
     // ##### PART ch1 END #####
 
     // ##### PART ch2 BEGIN #####
