@@ -5630,6 +5630,118 @@
         render(); solved = true; say("Every tear is mended! 🩹", "ok"); TK.win("You stretched washi tape over all three tears. Good as new!", 800);
       };
     }
+
+    STATION_PATCH[13] = {
+      title: "Linocut Print Studio",
+      subtitle: "Carve the block so that the print comes out like the target. Remember it prints in mirror.",
+      mechanic: "Mirrored Linocut Carving",
+      instructions: "Carve the lino block on the left with your finger. Whatever you carve away prints white; the rest prints black. When you pull a print, it comes out flipped left-to-right. Carve the block so that your print matches the target print. Then save your print.",
+      hint: "The block is a mirror image of the print. The leaf in the target points right, so on the block it has to point left. Carve only the white lines, and leave the rest of the block alone."
+    };
+
+    function buildStage13(mount) {
+      const W = 540, H = 300, S = 250, BX = 5, BY = 25, TX = 275, TY = 40, PX = 410, PS = 125;
+      const drawMotif = (c, col) => {
+        c.strokeStyle = col; c.fillStyle = col; c.lineWidth = 11; c.lineCap = "round"; c.lineJoin = "round";
+        c.beginPath(); c.moveTo(100, 220); c.quadraticCurveTo(95, 150, 130, 60); c.stroke();
+        c.beginPath(); c.moveTo(115, 140); c.quadraticCurveTo(170, 80, 215, 110); c.quadraticCurveTo(170, 160, 115, 140); c.stroke();
+        c.beginPath(); c.arc(60, 200, 8, 0, 6.2832); c.fill();
+      };
+      mount.innerHTML = `
+        <div class="s13-root w-full max-w-xl flex flex-col items-center gap-3">
+          <div class="w-full rounded-2xl overflow-hidden border-2 border-[#CFC3A8] shadow-md tk-noselect" style="background:#EFE6D0">
+            <canvas class="s13-cv tk-canvas block w-full" width="${W}" height="${H}"></canvas>
+          </div>
+          <div class="tk-status">Carve the block (left). Then pull a print.</div>
+          <div class="s13-actions flex gap-2 flex-wrap justify-center">
+            <button class="s13-fine px-3 py-2 rounded-xl border border-[#CFC3A8] bg-white text-sm text-[#5C5346]">Fine gouge</button>
+            <button class="s13-wide px-3 py-2 rounded-xl bg-[#283655] text-white text-sm">Wide gouge</button>
+            <button class="s13-undo px-3 py-2 rounded-xl border border-[#CFC3A8] bg-white text-sm text-[#5C5346]">↶ Undo</button>
+            <button class="s13-print px-4 py-2 rounded-xl bg-[#B88E1B] text-white text-sm font-semibold">Pull a print</button>
+          </div>
+        </div>`;
+      const root = mount.querySelector(".s13-root"), cv = mount.querySelector(".s13-cv"), g = cv.getContext("2d");
+      const say = (m, k) => TK.status(root, m, k);
+      let brush = 11, history = [], printed = null, solved = false;
+      // block: ink-coloured lino; carved = transparent
+      const bk = document.createElement("canvas"); bk.width = bk.height = S; const b = bk.getContext("2d", { willReadFrequently: true });
+      const fresh = () => { b.globalCompositeOperation = "source-over"; b.clearRect(0, 0, S, S); b.fillStyle = "#3C6E5A"; b.fillRect(0, 0, S, S); };
+      fresh();
+      // target print mask
+      const tg = document.createElement("canvas"); tg.width = tg.height = S; const tc = tg.getContext("2d");
+      tc.fillStyle = "#1A1A1A"; tc.fillRect(0, 0, S, S); drawMotif(tc, "#FFFFFF");
+      const GRID = 125;
+      const maskOf = (draw) => { const m = document.createElement("canvas"); m.width = m.height = GRID; const x = m.getContext("2d", { willReadFrequently: true }); draw(x); return x.getImageData(0, 0, GRID, GRID).data; };
+      const tMask = maskOf(x => { x.scale(GRID / S, GRID / S); x.drawImage(tg, 0, 0); });   // white strokes are bright
+      const T = new Uint8Array(GRID * GRID); for (let i = 0; i < T.length; i++) T[i] = tMask[i * 4] > 128 ? 1 : 0;
+      const dil = (arr, r) => { const o = new Uint8Array(arr.length); for (let y = 0; y < GRID; y++) for (let x = 0; x < GRID; x++) { if (!arr[y * GRID + x]) continue; for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) { const yy = y + dy, xx = x + dx; if (yy >= 0 && yy < GRID && xx >= 0 && xx < GRID) o[yy * GRID + xx] = 1; } } return o; };
+      const TD = dil(T, 3);
+      const carvedMask = () => { // mirrored, because the print flips the block
+        const d = maskOf(x => { x.translate(GRID, 0); x.scale(-GRID / S, GRID / S); x.drawImage(bk, 0, 0); });
+        const o = new Uint8Array(GRID * GRID); for (let i = 0; i < o.length; i++) o[i] = d[i * 4 + 3] < 128 ? 1 : 0; return o;
+      };
+      const paintPrint = (ctx, x0, y0, size) => {
+        ctx.save(); ctx.translate(x0, y0); ctx.fillStyle = "#FFFDF4"; ctx.fillRect(0, 0, size, size);
+        ctx.scale(size / S, size / S);
+        const inkLayer = document.createElement("canvas"); inkLayer.width = inkLayer.height = S; const ic = inkLayer.getContext("2d");
+        ic.fillStyle = "#1A1A1A"; ic.fillRect(0, 0, S, S); ic.globalCompositeOperation = "destination-out";
+        ic.translate(S, 0); ic.scale(-1, 1); ic.globalCompositeOperation = "destination-out";
+        // carved parts of the block become paper: erase ink where block is transparent
+        const inv = document.createElement("canvas"); inv.width = inv.height = S; const vc = inv.getContext("2d"); vc.fillStyle = "#000"; vc.fillRect(0, 0, S, S); vc.globalCompositeOperation = "destination-out"; vc.drawImage(bk, 0, 0);
+        // inv now opaque only where carved; ink should be absent there
+        ic.globalCompositeOperation = "destination-out"; ic.drawImage(inv, 0, 0);
+        ctx.drawImage(inkLayer, 0, 0); ctx.restore();
+      };
+      const render = () => {
+        g.fillStyle = "#EFE6D0"; g.fillRect(0, 0, W, H);
+        g.fillStyle = "#D7C7A0"; g.fillRect(BX - 3, BY - 3, S + 6, S + 6);
+        g.fillStyle = "#EFE6D0"; g.fillRect(BX, BY, S, S);
+        g.drawImage(bk, BX, BY);
+        g.fillStyle = "#6B5A4A"; g.font = "11px sans-serif"; g.fillText("lino block", BX + 4, 15); g.fillText("target print", TX, 30); g.fillText("your print", PX, 30);
+        g.fillStyle = "#FFFDF4"; g.fillRect(TX, TY, PS, PS); g.drawImage(tg, TX, TY, PS, PS);
+        g.strokeStyle = "#B9A57A"; g.strokeRect(TX - .5, TY - .5, PS + 1, PS + 1); g.strokeRect(PX - .5, TY - .5, PS + 1, PS + 1);
+        if (printed) paintPrint(g, PX, TY, PS); else { g.fillStyle = "#FFFDF4"; g.fillRect(PX, TY, PS, PS); g.fillStyle = "#B9A57A"; g.fillText("press to print", PX + 28, TY + 66); }
+        g.fillStyle = "#8C7A6B"; g.fillText("The print is the block flipped", TX, TY + PS + 24); g.fillText("left-to-right.", TX, TY + PS + 40);
+      };
+      render();
+      let last = null, len = 0;
+      const gouge = (a, c) => { b.globalCompositeOperation = "destination-out"; b.strokeStyle = "#000"; b.lineWidth = brush; b.lineCap = "round"; b.beginPath(); b.moveTo(a.x - BX, a.y - BY); b.lineTo(c.x - BX, c.y - BY); b.stroke(); b.globalCompositeOperation = "source-over"; };
+      TK.drag(cv, {
+        onStart(p, e) {
+          if (solved) return false; const c = TK.canvasPt(cv, e);
+          if (c.x < BX || c.x > BX + S || c.y < BY || c.y > BY + S) return false;
+          history.push(b.getImageData(0, 0, S, S)); if (history.length > 20) history.shift();
+          last = c; len = 0; gouge(c, c); printed = false; render(); return true;
+        },
+        onMove(p, e) { const c = TK.canvasPt(cv, e); len += TK.dist(last.x, last.y, c.x, c.y); gouge(last, c); last = c; render(); },
+        onEnd() { render(); }
+      });
+      const setBrush = v => { brush = v; mount.querySelector(".s13-fine").className = "s13-fine px-3 py-2 rounded-xl text-sm " + (v === 7 ? "bg-[#283655] text-white" : "border border-[#CFC3A8] bg-white text-[#5C5346]"); mount.querySelector(".s13-wide").className = "s13-wide px-3 py-2 rounded-xl text-sm " + (v === 11 ? "bg-[#283655] text-white" : "border border-[#CFC3A8] bg-white text-[#5C5346]"); };
+      mount.querySelector(".s13-fine").onclick = () => setBrush(7); mount.querySelector(".s13-wide").onclick = () => setBrush(11);
+      mount.querySelector(".s13-undo").onclick = () => { if (solved || !history.length) return; b.putImageData(history.pop(), 0, 0); printed = false; render(); say("Carve undone.", "info"); };
+      mount.querySelector(".s13-print").onclick = () => {
+        if (solved) return;
+        printed = true; render();
+        const C = carvedMask(); let tot = 0, hit = 0, car = 0, stray = 0;
+        const CD = dil(C, 1);
+        for (let i = 0; i < T.length; i++) { if (T[i]) { tot++; if (CD[i]) hit++; } if (C[i]) { car++; if (!TD[i]) stray++; } }
+        const cov = hit / tot, st = car ? stray / car : 0;
+        if (cov >= 0.8 && st <= 0.2) {
+          solved = true; say("A crisp print! Save it as your keepsake. 🖨️", "ok");
+          TK.keepsake(mount.querySelector(".s13-actions"), () => { const c = document.createElement("canvas"); c.width = c.height = 500; paintPrint(c.getContext("2d"), 0, 0, 500); return c; }, "my-linocut-print.png", "💾 Save my print");
+          TK.win("You carved the block and pulled a perfect mirrored print!", 2400);
+        } else if (cov < 0.8 && car < tot * 0.4) say("Not enough carved yet. Carve along all the white lines in the target.", "warn");
+        else if (cov < 0.8) say("Your print doesn't match yet. Check which way the leaf points. The block is flipped.", "warn");
+        else say("The lines are there, but you carved too much extra. Undo the stray cuts.", "warn");
+      };
+      currentAutoSolveFn = () => {
+        if (solved) return; fresh();
+        b.globalCompositeOperation = "destination-out"; b.save(); b.translate(S, 0); b.scale(-1, 1); drawMotif(b, "#000"); b.restore(); b.globalCompositeOperation = "source-over";
+        printed = true; render(); solved = true; say("A crisp print! 🖨️", "ok");
+        TK.keepsake(mount.querySelector(".s13-actions"), () => { const c = document.createElement("canvas"); c.width = c.height = 500; paintPrint(c.getContext("2d"), 0, 0, 500); return c; }, "my-linocut-print.png", "💾 Save my print");
+        TK.win("You carved the block and pulled a perfect mirrored print!", 2400);
+      };
+    }
     // ##### PART ch3 END #####
 
     // ##### PART ch4 BEGIN #####
