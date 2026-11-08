@@ -5471,6 +5471,77 @@
 
     // ##### PART ch3 BEGIN #####
     // (chapter 3 games go here)
+
+    STATION_PATCH[11] = {
+      title: "Quilling Coil Studio",
+      subtitle: "Roll three paper coils to exactly the right size, then glue each one.",
+      mechanic: "Paper Quilling",
+      instructions: "A long paper strip is ready on your quilling tool. Drag your finger in circles around the tool to roll the coil bigger (clockwise), or unroll it (anticlockwise). Match the dashed ring, then press Glue. Three coils make the flower.",
+      hint: "Roll slowly and watch the coil's outer edge approach the dashed ring. If you roll past it, circle the other way to loosen it. The rings get bigger each time."
+    };
+
+    function buildStage11(mount) {
+      const W = 540, H = 300, CX = 270, CY = 150, R0 = 8, D = 6, TOL = 3.2, MAXT = 12;
+      const targets = [20, 38, 56];            // radii in px => 2, 5, 8 turns
+      let idx = 0, theta = 0, solved = false;
+      const done = [];
+      mount.innerHTML = `
+        <div class="s11-root w-full max-w-xl flex flex-col items-center gap-3">
+          <div class="w-full rounded-2xl overflow-hidden border-2 border-[#CFC3A8] shadow-md tk-noselect" style="background:#FBF6EA">
+            <canvas class="s11-cv tk-canvas block w-full" width="${W}" height="${H}"></canvas>
+          </div>
+          <div class="tk-status">Circle your finger around the tool to roll the paper strip.</div>
+          <div class="flex gap-2 items-center">
+            <button class="s11-glue px-5 py-2 rounded-xl bg-[#283655] text-white text-sm font-semibold">Glue this coil</button>
+            <span class="s11-count text-xs text-[#8C7A6B]">Coil 1 of 3</span>
+          </div>
+        </div>`;
+      const root = mount.querySelector(".s11-root"), cv = mount.querySelector(".s11-cv"), g = cv.getContext("2d");
+      const say = (m, k) => TK.status(root, m, k);
+      const COLS = ["#D9568A", "#E8A33B", "#3E8FA0"];
+      const spiral = (ctx, cx, cy, th, scale, col) => {
+        ctx.beginPath();
+        for (let a = 0; a <= th; a += 0.12) { const r = (R0 + D * a / (2 * Math.PI)) * scale; const x = cx + r * Math.cos(a), y = cy + r * Math.sin(a); a === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+        ctx.strokeStyle = col; ctx.lineWidth = Math.max(1.5, 3.6 * scale); ctx.lineCap = "round"; ctx.stroke();
+      };
+      const radius = () => R0 + D * theta / (2 * Math.PI);
+      const render = () => {
+        g.fillStyle = "#FBF6EA"; g.fillRect(0, 0, W, H);
+        g.fillStyle = "#E7DCC0"; g.fillRect(0, H - 8, W, 8);
+        // loose strip tail on the left
+        g.strokeStyle = COLS[idx] || COLS[2]; g.lineWidth = 3.6; g.lineCap = "round";
+        const rr = radius();
+        g.beginPath(); g.moveTo(20, CY + rr + 30); g.quadraticCurveTo(CX - 120, CY + rr + 30, CX - 0, CY + rr); g.stroke();
+        if (!solved) {
+          g.setLineDash([6, 6]); g.strokeStyle = "#B88E1B"; g.lineWidth = 2.5; g.beginPath(); g.arc(CX, CY, targets[idx] + 1.8, 0, 6.2832); g.stroke(); g.setLineDash([]);
+        }
+        spiral(g, CX, CY, theta, 1, COLS[idx] || COLS[2]);
+        g.fillStyle = "#6B5A4A"; g.beginPath(); g.arc(CX, CY, 4, 0, 6.2832); g.fill();
+        done.forEach((t, i) => { spiral(g, 70 + i * 62, 60, t, 0.55, COLS[i]); });
+        g.fillStyle = "#8C7A6B"; g.font = "11px sans-serif"; g.fillText(done.length ? "glued coils" : "", 20, 22);
+        g.fillText(`size: ${Math.round(rr)} / ring ${targets[idx] || ""}`, W - 120, 20);
+      };
+      render();
+      const ang = c => Math.atan2(c.y - CY, c.x - CX);
+      let lastA = 0;
+      TK.drag(cv, {
+        onStart(p, e) { if (solved) return false; lastA = ang(TK.canvasPt(cv, e)); return true; },
+        onMove(p, e) {
+          const a = ang(TK.canvasPt(cv, e)); let d = a - lastA;
+          while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
+          lastA = a; theta = TK.clamp(theta + d, 0, MAXT * 2 * Math.PI); render();
+        }
+      });
+      mount.querySelector(".s11-glue").onclick = () => {
+        if (solved) return;
+        const diff = radius() - targets[idx];
+        if (Math.abs(diff) > TOL) { say(diff < 0 ? "Too tight. Roll a little more." : "Too loose and big. Circle the other way to unroll a bit.", "warn"); playTone(260, 0.1, "triangle"); return; }
+        done.push(theta); idx++; theta = 0; playTone(600 + idx * 100, 0.14, "sine", 0.07);
+        if (idx >= targets.length) { solved = true; render(); say("A flower of three coils! 🌸", "ok"); TK.win("You rolled and glued three perfect paper coils!", 1100); }
+        else { mount.querySelector(".s11-count").textContent = `Coil ${idx + 1} of 3`; say(`Coil ${idx} glued. Next ring is ${idx === 1 ? "bigger" : "the biggest"}.`, "ok"); render(); }
+      };
+      currentAutoSolveFn = () => { if (solved) return; while (idx < targets.length) { done.push((targets[idx] - R0) / D * 2 * Math.PI); idx++; } solved = true; theta = 0; render(); TK.win("You rolled and glued three perfect paper coils!", 800); };
+    }
     // ##### PART ch3 END #####
 
     // ##### PART ch4 BEGIN #####
