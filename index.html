@@ -4696,6 +4696,104 @@
         check();
       };
     }
+
+    STATION_PATCH[4] = {
+      title: "Sumi Inkblot Fold",
+      subtitle: "Paint one side, fold the paper, and see what grows.",
+      mechanic: "Ink Painting + Fold",
+      instructions: "The paper has a crease down the middle. Paint with ink on the left half using your finger. Slow strokes are thick and bold, quick ones are thin and light. Then fold the paper, and your painting prints itself on the other side. Save the result as a keepsake.",
+      hint: "Spread the ink across the whole left side, not just one corner. Mix thick slow blobs with thin quick lines, then fold."
+    };
+
+    function buildStage4(mount) {
+      const W = 540, H = 300, AX = 270;
+      mount.innerHTML = `
+        <div class="s4-root w-full max-w-xl flex flex-col items-center gap-3">
+          <div class="relative w-full rounded-2xl overflow-hidden border-2 border-[#CFC3A8] shadow-md tk-noselect" style="aspect-ratio:${W}/${H}; background:linear-gradient(90deg,#F6EFDD 0%,#FBF6EA 49%,#EFE6D0 50%,#FBF6EA 51%,#F6EFDD 100%)">
+            <canvas class="s4-ink tk-canvas absolute inset-0" width="${W}" height="${H}" style="height:100%"></canvas>
+          </div>
+          <div class="tk-status">Paint with ink on the left half of the paper.</div>
+          <div class="s4-actions flex gap-2 flex-wrap justify-center">
+            <button class="s4-fold px-4 py-2 rounded-xl bg-[#283655] text-white text-sm font-semibold">Fold the paper</button>
+            <button class="s4-wipe px-3 py-2 rounded-xl border border-[#CFC3A8] bg-white text-sm text-[#5C5346]">Clean paper</button>
+          </div>
+        </div>`;
+      const root = mount.querySelector(".s4-root"), cv = mount.querySelector(".s4-ink"), g = cv.getContext("2d", { willReadFrequently: true });
+      const say = (m, k) => TK.status(root, m, k);
+      let folded = false, folding = false, solved = false;
+
+      const blob = (x, y, w) => {
+        g.fillStyle = "rgba(20,24,40,.72)";
+        g.shadowColor = "rgba(20,24,40,.5)"; g.shadowBlur = 3;
+        g.beginPath(); g.arc(x, y, w / 2, 0, 6.2832); g.fill();
+        g.shadowBlur = 0;
+      };
+      let last = null, lastT = 0, lw = 10;
+      TK.drag(cv, {
+        onStart(p, e) {
+          if (folded || folding) return false;
+          const c = TK.canvasPt(cv, e);
+          if (c.x > AX) { say("The right half stays clean. Paint on the left.", "info"); return false; }
+          last = c; lastT = performance.now(); lw = 12; blob(c.x, c.y, lw); return true;
+        },
+        onMove(p, e) {
+          const c = TK.canvasPt(cv, e); c.x = Math.min(c.x, AX - 1);
+          const now = performance.now(), d = TK.dist(last.x, last.y, c.x, c.y);
+          const speed = d / Math.max(8, now - lastT) * 16;      // px per frame
+          lw = TK.lerp(lw, TK.clamp(17 - speed * 0.9, 3.5, 17), 0.35);
+          const n = Math.max(1, Math.ceil(d / 3));
+          for (let i = 1; i <= n; i++) blob(TK.lerp(last.x, c.x, i / n), TK.lerp(last.y, c.y, i / n), lw);
+          last = c; lastT = now;
+        }
+      });
+
+      function inkReport() {
+        const d = g.getImageData(0, 0, AX, H).data;
+        let n = 0; const cells = new Set();
+        for (let y = 0; y < H; y += 3) for (let x = 0; x < AX; x += 3) {
+          if (d[(y * AX + x) * 4 + 3] > 90) { n++; cells.add(Math.floor(x / (AX / 3)) + "," + Math.floor(y / (H / 3))); }
+        }
+        return { cover: n / ((AX / 3) * (H / 3)), cells: cells.size };
+      }
+
+      function fold() {
+        if (folded || folding || solved) return;
+        const r = inkReport();
+        if (r.cover < 0.045) { say("The paper is too dry to print. Paint a lot more ink first.", "warn"); return; }
+        if (r.cells < 4) { say("Spread the ink around more of the left side before folding.", "warn"); return; }
+        folding = true;
+        const snap = document.createElement("canvas"); snap.width = AX; snap.height = H;
+        snap.getContext("2d").drawImage(cv, 0, 0, AX, H, 0, 0, AX, H);
+        say("Folding…", "info");
+        let t = 0;
+        TK.loop(dt => {
+          t += dt / 0.9;
+          const k = Math.min(1, t);
+          g.clearRect(AX, 0, W - AX, H);
+          g.save(); g.translate(W, 0); g.scale(-1, 1);
+          g.globalAlpha = k * 0.95;
+          g.drawImage(snap, 0, 0);
+          g.restore(); g.globalAlpha = 1;
+          if (k >= 1) { folding = false; folded = true; done(); return false; }
+        });
+      }
+
+      function done() {
+        solved = true;
+        say("Unfolded! Look at what your ink became. 🦋", "ok");
+        TK.keepsake(mount.querySelector(".s4-actions"), cv, "my-inkblot.png", "💾 Save my inkblot");
+        TK.win("You painted one side and the fold printed the rest. A real inkblot!", 2200);
+      }
+      mount.querySelector(".s4-fold").onclick = fold;
+      mount.querySelector(".s4-wipe").onclick = () => { if (folding || solved) return; g.clearRect(0, 0, W, H); say("Clean paper. Paint with ink on the left half.", "info"); };
+
+      currentAutoSolveFn = () => {
+        if (solved || folding) return;
+        const r = TK.rng(4);
+        for (let i = 0; i < 14; i++) { const x = 20 + r() * 230, y = 20 + r() * 260; for (let k = 0; k < 6; k++) blob(x + k * 6, y + Math.sin(k) * 8, 14); }
+        fold();
+      };
+    }
     // ##### PART ch1 END #####
 
     // ##### PART ch2 BEGIN #####
