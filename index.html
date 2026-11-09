@@ -364,6 +364,9 @@
     // =========================================================================
     // DATA: 6 CHAPTERS & 30 ART & CRAFT PUZZLE STATIONS + BESPOKE GIFTS
     // =========================================================================
+    // Gift number shown to the player for each station (station id -> gift number). Shuffled on purpose so the hunt order is not 1..30. Every number is used exactly once.
+    const GIFT_NO = {1: 13, 2: 27, 3: 29, 4: 11, 5: 9, 6: 5, 7: 16, 8: 22, 9: 23, 10: 6, 11: 15, 12: 2, 13: 8, 14: 3, 15: 7, 16: 28, 17: 4, 18: 17, 19: 18, 20: 26, 21: 20, 22: 12, 23: 25, 24: 1, 25: 19, 26: 24, 27: 21, 28: 10, 29: 14, 30: 30};
+    const giftNo = st => GIFT_NO[st.id || st];
     const CHAPTERS = [
       { id: 1, roman: "I", name: "Pigment & Brush", range: [1, 5], icon: "🎨" },
       { id: 2, roman: "II", name: "Paper & Origami", range: [6, 10], icon: "🦢" },
@@ -961,7 +964,7 @@
       document.getElementById("hint-text").textContent = station.hint;
 
       // Aside Gift Card
-      document.getElementById("aside-gift-number").textContent = `Gift #${station.id}`;
+      document.getElementById("aside-gift-number").textContent = `Gift #${giftNo(station)}`;
       const asideCard = document.getElementById("aside-gift-card");
       if (isSolved) {
         asideCard.innerHTML = `
@@ -979,7 +982,7 @@
           </div>
           <div class="text-xs font-bold uppercase tracking-wider text-[#8C7A6B]">Wax-Sealed Keepsake</div>
           <div class="font-serif-atelier text-base font-bold text-[#5C5346]">Complete Station #${station.id} to Unseal</div>
-          <p class="text-xs text-[#8C7A6B]">Finish the tactile craft on the workbench to reveal Anamika's Gift #${station.id}.</p>
+          <p class="text-xs text-[#8C7A6B]">Finish the tactile craft on the workbench to reveal Anamika's Gift #${giftNo(station)}.</p>
         `;
       }
 
@@ -1018,7 +1021,7 @@
       launchConfetti();
 
       document.getElementById("modal-gift-icon").textContent = station.giftIcon;
-      document.getElementById("modal-gift-label").textContent = `Gift #${station.id} of 30 Unsealed!`;
+      document.getElementById("modal-gift-label").textContent = `Gift #${giftNo(station)} of 30 Unsealed!`;
       document.getElementById("modal-gift-title").textContent = station.giftTitle;
       document.getElementById("modal-gift-note").textContent = `"${station.giftNote}"`;
       document.getElementById("modal-craft-summary").textContent =
@@ -3976,7 +3979,7 @@
         card.innerHTML = `
           <div>
             <div class="flex items-center justify-between text-xs font-bold">
-              <span class="text-[#C85A32]">Gift #${st.id} • ${st.title}</span>
+              <span class="text-[#C85A32]">Gift #${giftNo(st)} • ${st.title}</span>
               <span>${unlocked ? "🎁 Unsealed" : "🔒 Locked"}</span>
             </div>
             <div class="mt-2 flex items-center gap-2.5">
