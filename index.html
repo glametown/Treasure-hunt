@@ -6224,6 +6224,58 @@
       animate();
       currentAutoSolveFn = () => { if (solved) return; toks[0].slot = 2; toks[1].slot = 3; toks[2].slot = 1; animate(); finish(); };
     }
+
+    STATION_PATCH[20] = {
+      title: "String Art Board",
+      subtitle: "Wind the thread between the pegs to copy the faint pattern.",
+      mechanic: "String Art",
+      instructions: "Press on a peg and swipe to another peg to stretch a thread between them. Copy the faint pattern on the board exactly. Swipe over a thread you already made to take it off again.",
+      hint: "Every peg is joined to the peg five steps away round the circle. Count five pegs clockwise from each peg, and stretch one thread to it."
+    };
+
+    function buildStage20(mount) {
+      const N = 12, R = 120, C = 150, SKIP = 5;
+      const pegs = Array.from({ length: N }, (_, i) => { const a = i / N * 2 * Math.PI - Math.PI / 2; return [C + R * Math.cos(a), C + R * Math.sin(a)]; });
+      const key = (a, b) => a < b ? a + "-" + b : b + "-" + a;
+      const target = new Set(Array.from({ length: N }, (_, i) => key(i, (i + SKIP) % N)));
+      let mine = new Set(), solved = false, live = null;
+      const line = (k, extra) => { const [a, b] = k.split("-").map(Number); return `<line x1="${pegs[a][0].toFixed(1)}" y1="${pegs[a][1].toFixed(1)}" x2="${pegs[b][0].toFixed(1)}" y2="${pegs[b][1].toFixed(1)}" ${extra}/>`; };
+      mount.innerHTML = `
+        <div class="s20-root w-full max-w-xl flex flex-col items-center gap-3">
+          <div class="w-full max-w-sm rounded-2xl border-2 border-[#CFC3A8] shadow-md tk-noselect" style="background:#3B2A20">
+            <svg class="s20-svg block w-full" viewBox="0 0 300 300" style="touch-action:none" data-target="${[...target].join(",")}">
+              <circle cx="${C}" cy="${C}" r="${R + 14}" fill="#4A3628"/>
+              <g class="s20-ghost">${[...target].map(k => line(k, 'stroke="rgba(255,235,190,.22)" stroke-width="1.6" stroke-dasharray="3 4"')).join("")}</g>
+              <g class="s20-threads"></g><g class="s20-live"></g>
+              ${pegs.map((p, i) => `<circle class="s20-peg" data-i="${i}" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="6" fill="#D9C7A3" stroke="#8C7A6B" stroke-width="2"/>`).join("")}
+            </svg></div>
+          <div class="tk-status">Swipe from peg to peg to stretch a thread.</div>
+          <button class="s20-reset px-3 py-2 rounded-xl border border-[#CFC3A8] bg-white text-sm text-[#5C5346]">Take all threads off</button>
+        </div>`;
+      const root = mount.querySelector(".s20-root"), svgEl = mount.querySelector(".s20-svg"), gT = mount.querySelector(".s20-threads"), gV = mount.querySelector(".s20-live"), say = (m, k) => TK.status(root, m, k);
+      const toSvg = e => { const p = svgEl.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; const r = p.matrixTransform(svgEl.getScreenCTM().inverse()); return [r.x, r.y]; };
+      const nearPeg = (p, max = 24) => { let b = -1, bd = max; pegs.forEach((q, i) => { const d = Math.hypot(p[0] - q[0], p[1] - q[1]); if (d < bd) { bd = d; b = i; } }); return b; };
+      const draw = () => { gT.innerHTML = [...mine].map(k => line(k, `data-k="${k}" stroke="${target.has(k) ? "#F2C14E" : "#E07A5F"}" stroke-width="2.4" stroke-linecap="round"`)).join(""); svgEl.dataset.mine = [...mine].join(","); };
+      const finish = () => { solved = true; draw(); say("The pattern is complete! 🧵", "ok"); TK.win("You wound the whole star with thread!", 900); };
+      const check = () => {
+        if (solved) return; const right = [...mine].filter(k => target.has(k)).length, extra = mine.size - right;
+        if (right === target.size && extra === 0) finish();
+        else say(`${right} of ${target.size} threads placed` + (extra ? `, ${extra} that don't belong (red)` : "") + ".", extra ? "warn" : "info");
+      };
+      svgEl.addEventListener("pointerdown", e => {
+        if (solved) return; const s = nearPeg(toSvg(e)); if (s < 0) return; e.preventDefault(); svgEl.setPointerCapture(e.pointerId); live = s;
+        const mv = ev => { const p = toSvg(ev); gV.innerHTML = `<line x1="${pegs[s][0]}" y1="${pegs[s][1]}" x2="${p[0]}" y2="${p[1]}" stroke="#F2C14E" stroke-width="2" opacity=".6"/>`; };
+        const up = ev => {
+          svgEl.removeEventListener("pointermove", mv); svgEl.removeEventListener("pointerup", up); svgEl.removeEventListener("pointercancel", up); gV.innerHTML = ""; live = null;
+          const t = nearPeg(toSvg(ev)); if (t < 0 || t === s) return; const k = key(s, t);
+          if (mine.has(k)) mine.delete(k); else mine.add(k); draw(); check();
+        };
+        svgEl.addEventListener("pointermove", mv); svgEl.addEventListener("pointerup", up); svgEl.addEventListener("pointercancel", up);
+      });
+      mount.querySelector(".s20-reset").onclick = () => { if (solved) return; mine = new Set(); draw(); say("Board cleared.", "info"); };
+      draw();
+      currentAutoSolveFn = () => { if (solved) return; mine = new Set(target); finish(); };
+    }
     // ##### PART ch4 END #####
 
     // ##### PART ch5 BEGIN #####
