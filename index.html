@@ -6514,6 +6514,67 @@
       sel(); draw();
       currentAutoSolveFn = () => { if (solved) return; col = TG.split(""); t = 1; draw(); anim(0.03, 0.3, 500, win); };
     }
+
+    STATION_PATCH[25] = {
+      title: "Cross-Stitch Chart",
+      subtitle: "Read the pattern chart and stitch it onto the cloth in the right colours.",
+      mechanic: "Cross-Stitch Keepsake",
+      instructions: "The chart shows the picture as symbols, and the key beside it says which thread colour each symbol means. Pick a thread colour, then press and swipe across the cloth squares below to stitch little crosses in the matching squares. Use the scissors to unpick a stitch. When your cloth matches the chart you can save it as a keepsake.",
+      hint: "Work from the top row down. Match each symbol on the chart to its colour in the key, then stitch the same square on the cloth. Empty squares on the chart stay empty on the cloth."
+    };
+
+    function buildStage25(mount) {
+      const ROWS = ["..RR.RR..", ".YRRRRRR.", ".RRRRRRR.", "..RRRRR..", "...RRR...", "....G....", "..G.G.G..", "...GGG...", "....G...."];
+      const NR = ROWS.length, NC = 9, CC = 28, AX = 24, AY = 170, CH = 15, CX0 = 20, CY0 = 18;
+      const COL = { R: "#D63D4E", G: "#3E9B5B", Y: "#F2B91F" }, SYM = { R: "●", G: "▲", Y: "■" };
+      let st = {}, pick = "R", solved = false;
+      const key = (r, c) => r + "," + c;
+      const cellR = (r, c) => ROWS[r][c] === "." ? "" : ROWS[r][c];
+      mount.innerHTML = `
+        <div class="s25-root w-full max-w-xl flex flex-col items-center gap-3">
+          <div class="w-full max-w-sm rounded-2xl border-2 border-[#CFC3A8] shadow-md tk-noselect bg-[#F6EFDC]">
+            <svg class="s25-svg block w-full" viewBox="0 0 300 ${AY + NR * CC + 14}" style="touch-action:none" data-target="${ROWS.join(";")}">
+              <rect width="300" height="${AY + NR * CC + 14}" fill="#F6EFDC"/>
+              <text x="${CX0}" y="12" font-size="10" fill="#8C7A6B">pattern chart</text>
+              ${ROWS.map((row, r) => row.split("").map((ch, c) => `<rect x="${CX0 + c * CH}" y="${CY0 + r * CH}" width="${CH}" height="${CH}" fill="#fff" stroke="#D8CDB2" stroke-width=".7"/>${ch !== "." ? `<text x="${CX0 + c * CH + CH / 2}" y="${CY0 + r * CH + CH / 2 + 4}" font-size="11" text-anchor="middle" fill="#4A3F36">${SYM[ch]}</text>` : ""}`).join("")).join("")}
+              <text x="190" y="40" font-size="10" fill="#8C7A6B">key</text>
+              ${["R", "G", "Y"].map((k, i) => `<text x="190" y="${64 + i * 28}" font-size="16" fill="#4A3F36">${SYM[k]}</text><text x="212" y="${64 + i * 28}" font-size="14" fill="#8C7A6B">=</text><circle cx="248" cy="${59 + i * 28}" r="9" fill="${COL[k]}" stroke="#5C4B3A"/>`).join("")}
+              <rect x="${AX - 4}" y="${AY - 4}" width="${NC * CC + 8}" height="${NR * CC + 8}" rx="6" fill="#EFE2C2" stroke="#CFC3A8"/>
+              ${Array.from({ length: NR }, (_, r) => Array.from({ length: NC }, (_, c) => `<rect class="s25-cell" data-r="${r}" data-c="${c}" x="${AX + c * CC}" y="${AY + r * CC}" width="${CC}" height="${CC}" fill="#F8F0DA" stroke="#D4C6A0" stroke-width="1"/>`).join("")).join("")}
+              <g class="s25-stitches" pointer-events="none"></g>
+            </svg></div>
+          <div class="flex gap-2 items-center s25-pal">
+            ${["R", "G", "Y"].map(k => `<button class="s25-thread" data-c="${k}" style="width:44px;height:44px;border-radius:50%;background:${COL[k]};border:3px solid #fff"></button>`).join("")}
+            <button class="s25-cut px-3 h-11 rounded-xl border border-[#CFC3A8] bg-white text-lg" data-c="cut" title="Unpick">✂️</button></div>
+          <div class="tk-status">Pick a thread and stitch the squares.</div>
+          <div class="s25-actions flex gap-2 flex-wrap justify-center"><button class="s25-reset px-3 py-2 rounded-xl border border-[#CFC3A8] bg-white text-sm text-[#5C5346]">Unpick everything</button></div>
+        </div>`;
+      const root = mount.querySelector(".s25-root"), svgEl = mount.querySelector(".s25-svg"), gS = mount.querySelector(".s25-stitches"), say = (m, k) => TK.status(root, m, k);
+      const sel = () => mount.querySelectorAll(".s25-thread,.s25-cut").forEach(b => b.style.boxShadow = b.dataset.c === pick ? "0 0 0 4px #D4AF37" : "0 0 0 2px #8C7A6B");
+      mount.querySelectorAll(".s25-thread,.s25-cut").forEach(b => b.onclick = () => { pick = b.dataset.c; sel(); });
+      const toSvg = e => { const p = svgEl.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; const r = p.matrixTransform(svgEl.getScreenCTM().inverse()); return [r.x, r.y]; };
+      const cellAt = p => { const c = Math.floor((p[0] - AX) / CC), r = Math.floor((p[1] - AY) / CC); return r >= 0 && r < NR && c >= 0 && c < NC ? [r, c] : null; };
+      const draw = () => {
+        gS.innerHTML = Object.entries(st).map(([k, v]) => { const [r, c] = k.split(",").map(Number), x = AX + c * CC, y = AY + r * CC, p = 5; return `<g stroke="${COL[v]}" stroke-width="4" stroke-linecap="round" data-k="${k}" data-v="${v}"><line x1="${x + p}" y1="${y + p}" x2="${x + CC - p}" y2="${y + CC - p}"/><line x1="${x + CC - p}" y1="${y + p}" x2="${x + p}" y2="${y + CC - p}"/></g>`; }).join("");
+        svgEl.dataset.mine = Object.entries(st).map(([k, v]) => k + v).join(";");
+      };
+      const finish = () => { solved = true; draw(); say("Every stitch is in the right place! 🧵", "ok"); TK.keepsake(mount.querySelector(".s25-actions"), svgEl, "my-cross-stitch.png", "💾 Save my cross-stitch"); TK.win("You read the chart and stitched the picture perfectly!", 2000); };
+      const check = () => {
+        if (solved) return; let right = 0, total = 0, wrong = 0;
+        for (let r = 0; r < NR; r++) for (let c = 0; c < NC; c++) { const t = cellR(r, c), m = st[key(r, c)] || ""; if (t) total++; if (t && m === t) right++; else if (m && m !== t) wrong++; }
+        if (right === total && wrong === 0) finish(); else say(`${right} of ${total} stitches right` + (wrong ? `, ${wrong} in the wrong place or colour` : "") + ".", wrong ? "warn" : "info");
+      };
+      const put = cell => { if (!cell) return; const k = key(cell[0], cell[1]); if (pick === "cut") delete st[k]; else st[k] = pick; };
+      svgEl.addEventListener("pointerdown", e => {
+        if (solved) return; const p0 = toSvg(e); if (!cellAt(p0)) return; e.preventDefault(); svgEl.setPointerCapture(e.pointerId); put(cellAt(p0)); draw(); let last = p0;
+        const mv = ev => { const p = toSvg(ev), n = Math.max(1, Math.ceil(Math.hypot(p[0] - last[0], p[1] - last[1]) / 6)); for (let i = 1; i <= n; i++) put(cellAt([last[0] + (p[0] - last[0]) * i / n, last[1] + (p[1] - last[1]) * i / n])); last = p; draw(); };
+        const up = () => { svgEl.removeEventListener("pointermove", mv); svgEl.removeEventListener("pointerup", up); svgEl.removeEventListener("pointercancel", up); check(); };
+        svgEl.addEventListener("pointermove", mv); svgEl.addEventListener("pointerup", up); svgEl.addEventListener("pointercancel", up);
+      });
+      mount.querySelector(".s25-reset").onclick = () => { if (solved) return; st = {}; draw(); say("Cloth is blank again.", "info"); };
+      sel(); draw();
+      currentAutoSolveFn = () => { if (solved) return; st = {}; for (let r = 0; r < NR; r++) for (let c = 0; c < NC; c++) if (cellR(r, c)) st[key(r, c)] = cellR(r, c); finish(); };
+    }
     // ##### PART ch5 END #####
 
     // ##### PART ch6 BEGIN #####
