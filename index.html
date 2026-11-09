@@ -6101,6 +6101,52 @@
       renderPieces(); renderShadows();
       currentAutoSolveFn = () => { if (solved) return; ids.forEach(id => { st[id] = TG[id].slice(); }); lamp = V_T; mount.querySelector(".s17-lamp").value = Math.round(V_T * 1000); renderPieces(); renderShadows(); solved = true; say("The bird takes shape on the screen! 🕊️", "ok"); TK.win("You shaped the shadows into a perfect bird silhouette!", 900); };
     }
+
+    STATION_PATCH[18] = {
+      title: "Diorama Lighting Studio",
+      subtitle: "Mix red, green and blue light until your little scene feels like the mood card.",
+      mechanic: "Light & Colour",
+      instructions: "The small card on the left shows the mood the photographer wants. Your diorama is on the right. Use the three light dials (red, green, blue) to colour the lamp, until your scene looks like the card.",
+      hint: "The card is a warm evening glow. Warm light has plenty of red, a little less green, and very little blue. Compare the sky and the grass between the two scenes."
+    };
+
+    function buildStage18(mount) {
+      const T = [1, 0.55, 0.3];                    // target light (r,g,b 0..1)
+      let L = [1, 1, 1], solved = false;
+      const base = { sky: [150, 195, 235], hill: [96, 170, 90], house: [235, 220, 190], roof: [190, 90, 70], door: [120, 80, 55], sun: [250, 240, 200], tree: [60, 130, 70], trunk: [110, 75, 50] };
+      const col = (k, l) => { const b = base[k]; return `rgb(${Math.round(b[0] * l[0])},${Math.round(b[1] * l[1])},${Math.round(b[2] * l[2])})`; };
+      const scene = (cls, l) => `<svg class="${cls}" viewBox="0 0 200 150" class="block w-full" style="display:block;width:100%">
+        <rect width="200" height="150" fill="${col("sky", l)}"/><circle cx="160" cy="34" r="16" fill="${col("sun", l)}"/>
+        <path d="M0 110 Q60 70 120 100 T200 95 V150 H0Z" fill="${col("hill", l)}"/>
+        <rect x="52" y="74" width="54" height="38" fill="${col("house", l)}"/><polygon points="46,76 79,48 112,76" fill="${col("roof", l)}"/>
+        <rect x="72" y="92" width="14" height="20" fill="${col("door", l)}"/>
+        <rect x="150" y="96" width="6" height="18" fill="${col("trunk", l)}"/><circle cx="153" cy="88" r="15" fill="${col("tree", l)}"/></svg>`;
+      mount.innerHTML = `
+        <div class="s18-root w-full max-w-xl flex flex-col items-center gap-3" data-tr="${T[0]}" data-tg="${T[1]}" data-tb="${T[2]}">
+          <div class="w-full grid grid-cols-2 gap-2">
+            <div class="rounded-xl overflow-hidden border-2 border-[#CFC3A8] bg-white"><div class="text-[11px] text-center text-[#6E5D4F] py-1">Mood card</div>${scene("s18-ref", T)}</div>
+            <div class="rounded-xl overflow-hidden border-2 border-[#CFC3A8] bg-white"><div class="text-[11px] text-center text-[#6E5D4F] py-1">Your diorama</div>${scene("s18-mine", L)}</div>
+          </div>
+          <div class="w-full max-w-sm flex flex-col gap-1">
+            ${[["r", "Red", "#C0392B"], ["g", "Green", "#2E8B57"], ["b", "Blue", "#2F6FB5"]].map(([k, n, c]) => `<label class="flex items-center gap-2 text-xs text-[#6E5D4F]"><span class="w-12">${n}</span><input class="s18-${k} flex-1" type="range" min="0" max="1000" value="1000" style="accent-color:${c};height:36px"></label>`).join("")}
+          </div>
+          <div class="tk-status">Turn the dials until your scene feels like the card.</div>
+        </div>`;
+      const root = mount.querySelector(".s18-root"), say = (m, k) => TK.status(root, m, k);
+      const redraw = () => { const w = document.createElement("div"); w.innerHTML = scene("s18-mine", L); const n = w.firstChild, o = mount.querySelector(".s18-mine"); o.innerHTML = n.innerHTML; };
+      const dist = () => Math.hypot(L[0] - T[0], L[1] - T[1], L[2] - T[2]);
+      const check = () => {
+        if (solved) return; const d = dist();
+        if (d <= 0.13) { solved = true; say("That's the mood exactly! 🌇", "ok"); TK.win("You lit the diorama to match the mood card!", 900); }
+        else say(d < 0.35 ? "Very close. Compare the sky and the grass." : "Keep turning the dials.", "info");
+      };
+      ["r", "g", "b"].forEach((k, i) => {
+        const el = mount.querySelector(".s18-" + k);
+        el.addEventListener("input", () => { if (solved) return; L[i] = +el.value / 1000; redraw(); });
+        el.addEventListener("change", check);
+      });
+      currentAutoSolveFn = () => { if (solved) return; L = T.slice(); ["r", "g", "b"].forEach((k, i) => mount.querySelector(".s18-" + k).value = Math.round(T[i] * 1000)); redraw(); solved = true; say("That's the mood exactly! 🌇", "ok"); TK.win("You lit the diorama to match the mood card!", 900); };
+    }
     // ##### PART ch4 END #####
 
     // ##### PART ch5 BEGIN #####
