@@ -6147,6 +6147,83 @@
       });
       currentAutoSolveFn = () => { if (solved) return; L = T.slice(); ["r", "g", "b"].forEach((k, i) => mount.querySelector(".s18-" + k).value = Math.round(T[i] * 1000)); redraw(); solved = true; say("That's the mood exactly! 🌇", "ok"); TK.win("You lit the diorama to match the mood card!", 900); };
     }
+
+    STATION_PATCH[19] = {
+      title: "Hanging Mobile Balance",
+      subtitle: "Hang the three shapes on the beam so the mobile hangs perfectly level.",
+      mechanic: "Balance & Weight",
+      instructions: "Like a Calder mobile: a bigger shape is heavier, and a shape hung farther from the middle pulls harder. Drag the three shapes from the tray to the dashed rings on the right arm until the beam hangs level. Drag a shape off its ring to move it again.",
+      hint: "A shape's pull is its weight times its distance from the centre. The left side has one big shape two steps out and one small one three steps out. Try the heaviest shape close to the centre."
+    };
+
+    function buildStage19(mount) {
+      const W = 360, H = 270, PX = 180, PY = 40, STEP = 36, STR = 56;
+      const fixed = [{ d: -2, w: 4 }, { d: -3, w: 1 }];
+      const rad = w => 11 * Math.sqrt(w);
+      const toks = [{ w: 1, slot: -1 }, { w: 2, slot: -1 }, { w: 3, slot: -1 }];
+      const trayX = [90, 180, 270], trayY = 228, dSlots = [1, 2, 3, 4];
+      let ang = 0, solved = false, drag = null, raf = 0;
+      const leftT = fixed.reduce((s, f) => s - f.d * f.w, 0);
+      const netOf = () => { let n = -leftT; toks.forEach(t => { if (t.slot > 0) n += t.slot * t.w; }); return n; };
+      const targetAng = () => TK.clamp((netOf() - 0) * 0.03, -0.38, 0.38);
+      const colours = { 1: "#E8B04A", 2: "#6FB3A0", 3: "#C0605A", 4: "#6B7FB8" };
+      mount.innerHTML = `
+        <div class="s19-root w-full max-w-xl flex flex-col items-center gap-3">
+          <div class="w-full rounded-2xl overflow-hidden border-2 border-[#CFC3A8] shadow-md tk-noselect" style="background:#F6EFDC">
+            <svg class="s19-svg block w-full" viewBox="0 0 ${W} ${H}" style="touch-action:none">
+              <line x1="${PX}" y1="0" x2="${PX}" y2="${PY}" stroke="#6E5D4F" stroke-width="2"/>
+              <g class="s19-lines"></g><g class="s19-beam"></g><g class="s19-slots"></g><g class="s19-fixed"></g>
+              <rect x="20" y="196" width="320" height="64" rx="10" fill="rgba(120,100,70,.10)"/>
+              <text x="28" y="210" font-size="10" fill="#8C7A6B">tray</text>
+              <g class="s19-toks"></g>
+            </svg></div>
+          <div class="tk-status">Hang the shapes so the beam sits level.</div>
+          <button class="s19-reset px-3 py-2 rounded-xl border border-[#CFC3A8] bg-white text-sm text-[#5C5346]">Put the shapes back</button>
+        </div>`;
+      const root = mount.querySelector(".s19-root"), svgEl = mount.querySelector(".s19-svg"), say = (m, k) => TK.status(root, m, k);
+      const gB = mount.querySelector(".s19-beam"), gS = mount.querySelector(".s19-slots"), gF = mount.querySelector(".s19-fixed"), gT = mount.querySelector(".s19-toks"), gL = mount.querySelector(".s19-lines");
+      const pt = d => [PX + d * STEP * Math.cos(ang), PY + d * STEP * Math.sin(ang)];
+      const toSvg = e => { const p = svgEl.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; const r = p.matrixTransform(svgEl.getScreenCTM().inverse()); return [r.x, r.y]; };
+      gS.innerHTML = dSlots.map(d => `<circle class="s19-slot" data-d="${d}" r="14" fill="rgba(212,175,55,.12)" stroke="#B88E1B" stroke-width="1.5" stroke-dasharray="4 3"/>`).join("");
+      gF.innerHTML = fixed.map((f, i) => `<circle class="s19-fx" data-i="${i}" r="${rad(f.w)}" fill="${colours[4]}" stroke="#444" stroke-width="1.5"/>`).join("");
+      gT.innerHTML = toks.map((t, i) => `<circle class="s19-tok" data-i="${i}" data-w="${t.w}" data-slot="-1" r="${rad(t.w)}" fill="${colours[t.w]}" stroke="#444" stroke-width="1.5" style="cursor:grab"/>`).join("");
+      const tokEl = i => gT.querySelector(`.s19-tok[data-i="${i}"]`);
+      const tokPos = i => { const t = toks[i]; if (drag && drag.i === i) return drag.p; if (t.slot > 0) { const p = pt(t.slot); return [p[0], p[1] + STR + rad(t.w)]; } return [trayX[i], trayY]; };
+      const render = () => {
+        const a = ang * 180 / Math.PI;
+        gB.innerHTML = `<g transform="rotate(${a} ${PX} ${PY})"><rect x="${PX - 4.5 * STEP}" y="${PY - 3}" width="${9 * STEP}" height="6" rx="3" fill="#6E5D4F"/></g><circle cx="${PX}" cy="${PY}" r="5" fill="#D4AF37"/>`;
+        gS.querySelectorAll(".s19-slot").forEach(c => { const p = pt(+c.dataset.d); c.setAttribute("cx", p[0]); c.setAttribute("cy", p[1] + STR + 14); });
+        let ln = "";
+        fixed.forEach((f, i) => { const p = pt(f.d), r = rad(f.w), el = gF.querySelector(`.s19-fx[data-i="${i}"]`); el.setAttribute("cx", p[0]); el.setAttribute("cy", p[1] + STR + r); ln += `<line x1="${p[0]}" y1="${p[1]}" x2="${p[0]}" y2="${p[1] + STR}" stroke="#6E5D4F"/>`; });
+        toks.forEach((t, i) => { const p = tokPos(i), el = tokEl(i); el.setAttribute("cx", p[0]); el.setAttribute("cy", p[1]); el.dataset.slot = t.slot; if (t.slot > 0 && !(drag && drag.i === i)) { const b = pt(t.slot); ln += `<line x1="${b[0]}" y1="${b[1]}" x2="${p[0]}" y2="${p[1] - rad(t.w)}" stroke="#6E5D4F"/>`; } });
+        gL.innerHTML = ln;
+        svgEl.dataset.net = netOf();
+      };
+      const animate = () => { cancelAnimationFrame(raf); const step = () => { const t = targetAng(); ang += (t - ang) * 0.18; if (Math.abs(t - ang) < 0.0005) ang = t; render(); if (ang !== t) raf = requestAnimationFrame(step); }; raf = requestAnimationFrame(step); };
+      const finish = () => { solved = true; say("Perfectly level! ⚖️", "ok"); TK.win("You balanced the whole mobile!", 900); };
+      const settle = () => {
+        if (solved) return; const placed = toks.every(t => t.slot > 0);
+        if (placed && netOf() === 0) finish();
+        else if (placed) say(netOf() > 0 ? "The right arm hangs too low." : "The left arm hangs too low.", "info");
+        else say("Hang all three shapes on the right arm.", "info");
+      };
+      gT.querySelectorAll(".s19-tok").forEach(el => {
+        el.addEventListener("pointerdown", e => {
+          if (solved) return; e.preventDefault(); const i = +el.dataset.i; gT.appendChild(el); el.setPointerCapture(e.pointerId);
+          const p0 = toSvg(e), c0 = tokPos(i), ox = c0[0] - p0[0], oy = c0[1] - p0[1]; toks[i].slot = -1; drag = { i, p: c0 }; animate();
+          const mv = ev => { const p = toSvg(ev); drag.p = [TK.clamp(p[0] + ox, 12, W - 12), TK.clamp(p[1] + oy, 12, H - 12)]; render(); };
+          const up = () => {
+            el.removeEventListener("pointermove", mv); el.removeEventListener("pointerup", up); el.removeEventListener("pointercancel", up);
+            let best = -1, bd = 34; dSlots.forEach(d => { if (toks.some((t, j) => j !== i && t.slot === d)) return; const p = pt(d), dd = Math.hypot(drag.p[0] - p[0], drag.p[1] - (p[1] + STR + rad(toks[i].w))); if (dd < bd) { bd = dd; best = d; } });
+            toks[i].slot = best; drag = null; animate(); setTimeout(settle, 450);
+          };
+          el.addEventListener("pointermove", mv); el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
+        });
+      });
+      mount.querySelector(".s19-reset").onclick = () => { if (solved) return; toks.forEach(t => t.slot = -1); animate(); say("Shapes back in the tray.", "info"); };
+      animate();
+      currentAutoSolveFn = () => { if (solved) return; toks[0].slot = 2; toks[1].slot = 3; toks[2].slot = 1; animate(); finish(); };
+    }
     // ##### PART ch4 END #####
 
     // ##### PART ch5 BEGIN #####
