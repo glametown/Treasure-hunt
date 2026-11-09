@@ -5814,6 +5814,105 @@
       };
       currentAutoSolveFn = () => { if (solved) return; r = target.slice(); solved = true; fired = true; say("Out of the kiln, glazed and perfect! 🏺", "ok"); TK.win("You threw a vase on the wheel that matches the pattern!", 900); };
     }
+
+    STATION_PATCH[15] = {
+      title: "Kintsugi Mending",
+      subtitle: "Reassemble the broken porcelain plate, then seal every crack with gold.",
+      mechanic: "Shard Assembly + Gold Seams",
+      instructions: "A porcelain plate has shattered. Drag each shard from the tray back to the dashed circle, matching the painted pattern so the edges fit. Once the plate is whole, trace along every crack with your finger to fill it with gold.",
+      hint: "Find where the painted rings and petals continue between neighbouring shards. A shard snaps into place when it is close to its spot. For the gold, follow each crack slowly from one end to the other."
+    };
+
+    function buildStage15(mount) {
+      const W = 540, H = 300, CX = 125, CY = 150, RR = 82, SNAP = 18, GOLD_R = 15;
+      const P = [CX - 8, CY + 6];
+      const ths = [-1.15, -0.1, 1.2, 2.45, 3.75];                    // crack angles at the rim
+      const rim = th => [CX + RR * Math.cos(th), CY + RR * Math.sin(th)];
+      const jit = TK.rng(15);
+      const cracks = ths.map(th => { const e = rim(th), m = [P[0] + (e[0] - P[0]) * 0.55 + (jit() - 0.5) * 22, P[1] + (e[1] - P[1]) * 0.55 + (jit() - 0.5) * 22], m2 = [P[0] + (e[0] - P[0]) * 0.25 + (jit() - 0.5) * 12, P[1] + (e[1] - P[1]) * 0.25 + (jit() - 0.5) * 12]; return [P, m2, m, e]; });
+      const shards = ths.map((th, i) => {
+        const j = (i + 1) % ths.length; let t2 = ths[j]; while (t2 <= th) t2 += 2 * Math.PI;
+        const arc = []; for (let a = th; a <= t2 + 1e-6; a += 0.12) arc.push(rim(a)); arc.push(rim(t2));
+        const cr1 = cracks[i], cr2 = cracks[j].slice().reverse();
+        return cr1.concat(arc.slice(1), cr2.slice(1));
+      });
+      const centroid = poly => { let a = 0, x = 0, y = 0; poly.forEach((p, i) => { const q = poly[(i + 1) % poly.length], c = p[0] * q[1] - q[0] * p[1]; a += c; x += (p[0] + q[0]) * c; y += (p[1] + q[1]) * c; }); return [x / (3 * a), y / (3 * a)]; };
+      const homes = shards.map(centroid);
+      const starts = [[345, 76], [445, 76], [345, 168], [445, 168], [395, 228]];
+      const ids = shards.map((_, i) => i);
+      const pts = poly => poly.map(p => p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ");
+      const deco = `<circle cx="${CX}" cy="${CY}" r="${RR - 10}" fill="none" stroke="#3E6BB0" stroke-width="3"/><circle cx="${CX}" cy="${CY}" r="${RR - 24}" fill="none" stroke="#3E6BB0" stroke-width="1.5"/>
+        <circle cx="${CX}" cy="${CY}" r="24" fill="#3E6BB0" opacity=".85"/><circle cx="${CX}" cy="${CY}" r="14" fill="#F2F6FA"/>
+        ${[0, 1, 2, 3, 4, 5, 6, 7].map(k => { const a = k * Math.PI / 4; return `<ellipse cx="${CX + 46 * Math.cos(a)}" cy="${CY + 46 * Math.sin(a)}" rx="13" ry="7" transform="rotate(${k * 45} ${CX + 46 * Math.cos(a)} ${CY + 46 * Math.sin(a)})" fill="#7FA6D8"/>`; }).join("")}`;
+      mount.innerHTML = `
+        <div class="s15-root w-full max-w-xl flex flex-col items-center gap-3">
+          <div class="w-full rounded-2xl overflow-hidden border-2 border-[#CFC3A8] shadow-md tk-noselect" style="background:#EFE6D0">
+            <svg class="s15-svg block w-full" viewBox="0 0 ${W} ${H}" style="touch-action:none">
+              <defs>${shards.map((s, i) => `<clipPath id="s15-c${i}"><polygon points="${pts(s)}"/></clipPath>`).join("")}</defs>
+              <rect x="262" y="8" width="270" height="284" rx="12" fill="#E3D6B6" opacity=".6"/>
+              <circle cx="${CX}" cy="${CY}" r="${RR + 2}" fill="none" stroke="#8C7A6B" stroke-width="2" stroke-dasharray="6 6"/>
+              <g class="s15-shards">${shards.map((s, i) => { const dx = starts[i][0] - homes[i][0], dy = starts[i][1] - homes[i][1]; return `<g class="s15-shard" data-i="${i}" data-hx="${homes[i][0].toFixed(1)}" data-hy="${homes[i][1].toFixed(1)}" data-sx="${starts[i][0]}" data-sy="${starts[i][1]}" data-dx="${dx.toFixed(1)}" data-dy="${dy.toFixed(1)}" transform="translate(${dx.toFixed(1)} ${dy.toFixed(1)})" style="cursor:grab"><polygon points="${pts(s)}" fill="#F2F6FA" stroke="#8CA3C4" stroke-width="1.5" stroke-linejoin="round"/><g clip-path="url(#s15-c${i})" pointer-events="none">${deco}</g></g>`; }).join("")}</g>
+              <g class="s15-cracks" style="display:none">${cracks.map((c, i) => `<polyline class="s15-crack" data-i="${i}" data-pts="${c.map(p => p.map(v => v.toFixed(1)).join(",")).join(" ")}" points="${pts(c)}" fill="none" stroke="#9A8A6A" stroke-width="2.5" stroke-dasharray="3 5" stroke-linecap="round" stroke-linejoin="round"/>`).join("")}</g>
+              <g class="s15-gold" pointer-events="none"></g>
+            </svg>
+          </div>
+          <div class="tk-status">Drag the shards back onto the dashed circle.</div>
+        </div>`;
+      const root = mount.querySelector(".s15-root"), svgEl = mount.querySelector(".s15-svg"), say = (m, k) => TK.status(root, m, k);
+      const shardEl = i => mount.querySelector(`.s15-shard[data-i="${i}"]`), layer = mount.querySelector(".s15-shards");
+      const toSvg = e => { const pt = svgEl.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const r = pt.matrixTransform(svgEl.getScreenCTM().inverse()); return [r.x, r.y]; };
+      const placed = new Set(); let phase = 1, solved = false;
+      const setT = (el, x, y, anim) => { el.style.transition = anim ? "transform .2s" : "none"; el.setAttribute("transform", `translate(${x.toFixed(1)} ${y.toFixed(1)})`); };
+      ids.forEach(i => {
+        const el = shardEl(i);
+        el.addEventListener("pointerdown", e => {
+          if (phase !== 1 || placed.has(i)) return;
+          e.preventDefault(); layer.appendChild(el); el.setPointerCapture(e.pointerId);
+          const cur = el.transform.baseVal.consolidate().matrix, p0 = toSvg(e), ox = cur.e - p0[0], oy = cur.f - p0[1];
+          el.style.filter = "drop-shadow(0 5px 5px rgba(0,0,0,.3))";
+          const mv = ev => { const p = toSvg(ev); setT(el, p[0] + ox, p[1] + oy, false); };
+          const up = () => {
+            el.removeEventListener("pointermove", mv); el.removeEventListener("pointerup", up); el.removeEventListener("pointercancel", up); el.style.filter = "";
+            const m = el.transform.baseVal.consolidate().matrix;
+            if (Math.hypot(m.e, m.f) <= SNAP) {
+              setT(el, 0, 0, true); placed.add(i); el.style.cursor = "default"; playTone(520 + placed.size * 70, 0.1, "sine", 0.06);
+              const left = ids.length - placed.size;
+              if (left) say(`Clink! ${left} shard${left > 1 ? "s" : ""} left.`, "ok"); else startGold();
+            }
+          };
+          el.addEventListener("pointermove", mv); el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
+        });
+      });
+
+      // ---- gold phase ----
+      const samples = cracks.map(c => { const out = []; for (let k = 1; k < c.length; k++) { const a = c[k - 1], b = c[k], n = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 4); for (let s = (k === 1 ? 0 : 1); s <= n; s++) out.push([a[0] + (b[0] - a[0]) * s / n, a[1] + (b[1] - a[1]) * s / n]); } return out; });
+      const cov = samples.map(s => new Array(s.length).fill(false));
+      const gGold = mount.querySelector(".s15-gold");
+      const drawGold = () => {
+        gGold.innerHTML = samples.map((s, ci) => { const segs = []; let cur = []; s.forEach((p, k) => { if (cov[ci][k]) cur.push(p); else { if (cur.length) segs.push(cur); cur = []; } }); if (cur.length) segs.push(cur);
+          return segs.map(sg => `<polyline points="${pts(sg)}" fill="none" stroke="#E0B440" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><polyline points="${pts(sg)}" fill="none" stroke="#FFF1B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`).join(""); }).join("");
+      };
+      function startGold() { phase = 2; mount.querySelector(".s15-cracks").style.display = ""; say("The plate is whole! Now trace each crack with your finger to fill it with gold.", "ok"); }
+      let tracing = false, lastP = null;
+      const mark = p => { let any = false; samples.forEach((s, ci) => s.forEach((q, k) => { if (!cov[ci][k] && Math.hypot(p[0] - q[0], p[1] - q[1]) < GOLD_R) { cov[ci][k] = true; any = true; } })); return any; };
+      const trace = e => {
+        const p = toSvg(e), a = lastP || p, n = Math.max(1, Math.ceil(Math.hypot(p[0] - a[0], p[1] - a[1]) / 6)); let any = false;
+        for (let i = 1; i <= n; i++) if (mark([a[0] + (p[0] - a[0]) * i / n, a[1] + (p[1] - a[1]) * i / n])) any = true;
+        lastP = p; if (any) { drawGold(); checkGold(); }
+      };
+      svgEl.addEventListener("pointerdown", e => { if (phase !== 2 || solved) return; e.preventDefault(); svgEl.setPointerCapture(e.pointerId); tracing = true; lastP = null; trace(e); });
+      svgEl.addEventListener("pointermove", e => { if (tracing && !solved) trace(e); });
+      svgEl.addEventListener("pointerup", () => { tracing = false; lastP = null; }); svgEl.addEventListener("pointercancel", () => { tracing = false; lastP = null; });
+      function checkGold() {
+        const f = cov.map(c => c.filter(Boolean).length / c.length); mount.querySelectorAll('.s15-crack').forEach((el, i) => el.setAttribute('data-f', f[i].toFixed(2))); const done = f.filter(x => x >= 0.93).length;
+        if (done === cracks.length && !solved) { solved = true; cov.forEach(c => c.fill(true)); drawGold(); say("Mended with gold — more beautiful than before. ✨", "ok"); TK.win("You reassembled the plate and sealed every crack with gold, kintsugi style!", 1300); }
+        else if (!solved) say(`${done} of ${cracks.length} cracks filled with gold.`, "info");
+      }
+      currentAutoSolveFn = () => {
+        if (solved) return; ids.forEach(i => { setT(shardEl(i), 0, 0, true); placed.add(i); });
+        phase = 2; mount.querySelector(".s15-cracks").style.display = ""; cov.forEach(c => c.fill(true)); checkGold();
+      };
+    }
     // ##### PART ch3 END #####
 
     // ##### PART ch4 BEGIN #####
