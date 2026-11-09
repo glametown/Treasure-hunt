@@ -6399,6 +6399,53 @@
       render();
       currentAutoSolveFn = () => { if (solved) return; cur = SOL.split(""); finish(); };
     }
+
+    STATION_PATCH[23] = {
+      title: "Macramé Knot Cord",
+      subtitle: "Tie the knots in the same order as the sample strip.",
+      mechanic: "Macramé Knots",
+      instructions: "The sample strip on the left shows each knot as a slanted mark. Swipe across the hanging cords to tie a knot: swipe right to tie a '/' knot, swipe left to tie a '\\' knot. Tie them in the same order as the strip, top to bottom. Use Undo if you tie one wrong.",
+      hint: "Same slant over and over makes a spiral twist; alternating slants make a flat knot. Match the marks one by one from the top: a '/' mark means swipe right, a '\\' mark means swipe left."
+    };
+
+    function buildStage23(mount) {
+      const TG = "RRRRLRLR", Y = i => 40 + i * 28, CX = [172, 192, 212, 232];
+      let mine = "", solved = false, bad = false;
+      const mark = (ch, x, y, col, w) => ch === "R" ? `<line x1="${x - w}" y1="${y + 8}" x2="${x + w}" y2="${y - 8}" stroke="${col}" stroke-width="5" stroke-linecap="round"/>` : `<line x1="${x - w}" y1="${y - 8}" x2="${x + w}" y2="${y + 8}" stroke="${col}" stroke-width="5" stroke-linecap="round"/>`;
+      mount.innerHTML = `
+        <div class="s23-root w-full max-w-xl flex flex-col items-center gap-3">
+          <div class="w-full max-w-sm rounded-2xl border-2 border-[#CFC3A8] shadow-md tk-noselect" style="background:#F6EFDC">
+            <svg class="s23-svg block w-full" viewBox="0 0 300 290" style="touch-action:none" data-target="${TG}">
+              <text x="70" y="18" font-size="10" text-anchor="middle" fill="#8C7A6B">sample strip</text>
+              <rect x="40" y="26" width="60" height="${8 * 28 + 6}" rx="8" fill="rgba(120,100,70,.10)"/>
+              ${TG.split("").map((ch, i) => mark(ch, 70, Y(i) + 8, "#5C4B3A", 16)).join("")}
+              <rect x="150" y="14" width="104" height="8" rx="4" fill="#8C5A3C"/>
+              ${CX.map(x => `<line x1="${x}" y1="22" x2="${x}" y2="270" stroke="#D8B98A" stroke-width="3"/>`).join("")}
+              <g class="s23-knots"></g>
+              <rect class="s23-pad" x="140" y="26" width="124" height="250" fill="transparent" style="cursor:ew-resize"/>
+            </svg></div>
+          <div class="tk-status">Swipe across the cords to tie a knot.</div>
+          <button class="s23-undo px-3 py-2 rounded-xl border border-[#CFC3A8] bg-white text-sm text-[#5C5346]">Undo last knot</button>
+        </div>`;
+      const root = mount.querySelector(".s23-root"), svgEl = mount.querySelector(".s23-svg"), gK = mount.querySelector(".s23-knots"), pad = mount.querySelector(".s23-pad"), say = (m, k) => TK.status(root, m, k);
+      const toSvg = e => { const p = svgEl.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; const r = p.matrixTransform(svgEl.getScreenCTM().inverse()); return [r.x, r.y]; };
+      const render = () => { gK.innerHTML = mine.split("").map((ch, i) => mark(ch, 202, Y(i) + 8, ch === TG[i] ? "#B2562E" : "#2F5D8A", 36)).join(""); svgEl.dataset.mine = mine; };
+      const finish = () => { solved = true; say("The knotted cord is finished! 🪢", "ok"); TK.win("You tied the whole macramé strip!", 900); };
+      pad.addEventListener("pointerdown", e => {
+        if (solved || mine.length >= TG.length) return; e.preventDefault(); pad.setPointerCapture(e.pointerId); const x0 = toSvg(e)[0];
+        const up = ev => {
+          pad.removeEventListener("pointerup", up); pad.removeEventListener("pointercancel", up); const dx = toSvg(ev)[0] - x0;
+          if (Math.abs(dx) < 30 || bad) { if (bad) say("Undo the wrong knot first.", "warn"); return; }
+          const ch = dx > 0 ? "R" : "L", i = mine.length; mine += ch; render();
+          if (ch !== TG[i]) { bad = true; say(`Knot ${i + 1} has the wrong slant (shown in blue). Undo it.`, "warn"); }
+          else if (mine.length === TG.length) finish(); else say(`Knot ${i + 1} matches. Keep going.`, "ok");
+        };
+        pad.addEventListener("pointerup", up); pad.addEventListener("pointercancel", up);
+      });
+      mount.querySelector(".s23-undo").onclick = () => { if (solved || !mine) return; mine = mine.slice(0, -1); bad = false; render(); say("Last knot undone.", "info"); };
+      render();
+      currentAutoSolveFn = () => { if (solved) return; mine = TG; render(); finish(); };
+    }
     // ##### PART ch5 END #####
 
     // ##### PART ch6 BEGIN #####
