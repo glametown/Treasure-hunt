@@ -6280,6 +6280,71 @@
 
     // ##### PART ch5 BEGIN #####
     // (chapter 5 games go here)
+
+    STATION_PATCH[21] = {
+      title: "Weaving Loom",
+      subtitle: "Lift the right threads, pass the shuttle, and weave the pattern row by row.",
+      mechanic: "Weaving",
+      instructions: "The little chart shows the finished cloth: a dark square means the vertical (warp) thread shows on top there. For each row, tap the round heddles above the loom to lift the warp threads that should show on top, then swipe the shuttle across to the right. If a row is wrong, unpick it and weave it again.",
+      hint: "Read the chart one row at a time, left to right. A dark square means lift that thread. Each row slides the pattern one square along from the row above."
+    };
+
+    function buildStage21(mount) {
+      const NC = 6, NR = 6, X0 = 60, DX = 36, Y0 = 138, DY = 24;
+      const top = (c, r) => ((c + r) % 4) < 2;
+      const target = Array.from({ length: NR }, (_, r) => Array.from({ length: NC }, (_, c) => top(c, r)));
+      let rows = [], lift = Array(NC).fill(false), solved = false, bad = false;
+      const rowStr = a => a.map(v => v ? 1 : 0).join("");
+      mount.innerHTML = `
+        <div class="s21-root w-full max-w-xl flex flex-col items-center gap-3">
+          <div class="w-full max-w-sm rounded-2xl border-2 border-[#CFC3A8] shadow-md tk-noselect" style="background:#F6EFDC">
+            <svg class="s21-svg block w-full" viewBox="0 0 300 310" style="touch-action:none" data-target="${target.map(rowStr).join(";")}">
+              <text x="150" y="12" font-size="10" text-anchor="middle" fill="#8C7A6B">finished cloth</text>
+              ${target.map((row, r) => row.map((v, c) => `<rect x="${108 + c * 14}" y="${18 + r * 11}" width="13" height="10" fill="${v ? "#2F5D8A" : "#E9B44C"}"/>`).join("")).join("")}
+              <rect x="40" y="112" width="220" height="${NR * DY + 22}" rx="6" fill="#EADFC6"/>
+              ${Array.from({ length: NC }, (_, c) => `<line x1="${X0 + c * DX}" y1="122" x2="${X0 + c * DX}" y2="${Y0 + NR * DY - 8}" stroke="#2F5D8A" stroke-width="3"/>`).join("")}
+              <g class="s21-cloth"></g>
+              <g class="s21-lifts"></g>
+              <g class="s21-shuttle-g"></g>
+            </svg></div>
+          <div class="tk-status">Lift the threads that should show, then swipe the shuttle across.</div>
+          <button class="s21-undo px-3 py-2 rounded-xl border border-[#CFC3A8] bg-white text-sm text-[#5C5346]">Unpick last row</button>
+        </div>`;
+      const root = mount.querySelector(".s21-root"), svgEl = mount.querySelector(".s21-svg"), gC = mount.querySelector(".s21-cloth"), gL = mount.querySelector(".s21-lifts"), gS = mount.querySelector(".s21-shuttle-g"), say = (m, k) => TK.status(root, m, k);
+      const toSvg = e => { const p = svgEl.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; const r = p.matrixTransform(svgEl.getScreenCTM().inverse()); return [r.x, r.y]; };
+      const curY = () => Y0 + rows.length * DY;
+      const renderCloth = () => {
+        gC.innerHTML = rows.map((row, r) => { const y = Y0 + r * DY, ok = rowStr(row) === rowStr(target[r]); return `<rect x="46" y="${y - 7}" width="208" height="14" rx="3" fill="${ok ? "#E9B44C" : "#D9744F"}"/>` + row.map((v, c) => v ? `<rect x="${X0 + c * DX - 6}" y="${y - 10}" width="12" height="20" rx="2" fill="#2F5D8A"/>` : "").join(""); }).join("");
+      };
+      const renderLifts = () => {
+        gL.innerHTML = lift.map((v, c) => `<circle class="s21-lift" data-c="${c}" data-on="${v ? 1 : 0}" cx="${X0 + c * DX}" cy="100" r="12" fill="${v ? "#D4AF37" : "#FFF"}" stroke="#8A6D12" stroke-width="2" style="cursor:pointer"/>`).join("");
+        gL.querySelectorAll(".s21-lift").forEach(el => el.addEventListener("pointerdown", e => { if (solved || bad || rows.length >= NR) return; e.preventDefault(); const c = +el.dataset.c; lift[c] = !lift[c]; renderLifts(); }));
+      };
+      const renderShuttle = (x) => {
+        if (solved || rows.length >= NR) { gS.innerHTML = ""; return; }
+        gS.innerHTML = `<g class="s21-shuttle" transform="translate(${x} ${curY()})" style="cursor:grab"><rect x="-22" y="-8" width="44" height="16" rx="8" fill="#8C5A3C" stroke="#4A3020" stroke-width="2"/><circle cx="0" cy="0" r="22" fill="transparent"/></g>`;
+        const el = gS.querySelector(".s21-shuttle");
+        el.addEventListener("pointerdown", e => {
+          if (solved || bad) return; e.preventDefault(); el.setPointerCapture(e.pointerId);
+          const mv = ev => { const p = toSvg(ev); el.setAttribute("transform", `translate(${TK.clamp(p[0], 28, 272)} ${curY()})`); };
+          const up = ev => {
+            el.removeEventListener("pointermove", mv); el.removeEventListener("pointerup", up); el.removeEventListener("pointercancel", up);
+            if (toSvg(ev)[0] >= 245) weave(); else renderShuttle(28);
+          };
+          el.addEventListener("pointermove", mv); el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
+        });
+      };
+      const finish = () => { solved = true; renderCloth(); renderShuttle(28); say("The cloth is woven! 🧶", "ok"); TK.win("You wove the whole twill pattern!", 900); };
+      const weave = () => {
+        const r = rows.length; rows.push(lift.slice()); lift = Array(NC).fill(false); renderCloth(); renderLifts(); svgEl.dataset.rows = rows.map(rowStr).join(";");
+        const ok = rowStr(rows[r]) === rowStr(target[r]);
+        if (!ok) { bad = true; renderShuttle(28); say(`Row ${r + 1} doesn't match the chart (shown in red). Unpick it and weave it again.`, "warn"); return; }
+        if (rows.length === NR) finish(); else { renderShuttle(28); say(`Row ${r + 1} is right. Next row.`, "ok"); }
+      };
+      mount.querySelector(".s21-undo").onclick = () => { if (solved || !rows.length) return; rows.pop(); bad = false; lift = Array(NC).fill(false); renderCloth(); renderLifts(); renderShuttle(28); svgEl.dataset.rows = rows.map(rowStr).join(";"); say("Row unpicked.", "info"); };
+      renderCloth(); renderLifts(); renderShuttle(28); svgEl.dataset.rows = "";
+      currentAutoSolveFn = () => { if (solved) return; rows = target.map(r => r.slice()); lift = Array(NC).fill(false); renderLifts(); finish(); };
+    }
     // ##### PART ch5 END #####
 
     // ##### PART ch6 BEGIN #####
