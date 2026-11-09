@@ -5917,6 +5917,100 @@
 
     // ##### PART ch4 BEGIN #####
     // (chapter 4 games go here)
+
+    STATION_PATCH[16] = {
+      title: "Stained Glass Window",
+      subtitle: "Colour the rose window so no two touching panes share a colour.",
+      mechanic: "Glass Colouring",
+      instructions: "Pick a glass colour, then tap or drag across panes to fill them. Panes that touch along a lead line must be different colours, or the lead glows red. A few panes are already fixed. Fill every pane, use each colour at least twice, and light the window up.",
+      hint: "Start with the panes next to the fixed ones: each has only a few colours left to choose from. The centre pane touches all six panes around it, so those must avoid its colour."
+    };
+
+    function buildStage16(mount) {
+      const W = 540, H = 300, CX = 270, CY = 150, COLS = ["#C8383F", "#2C5AA0", "#2E8B57", "#E0A030"], NAMES = ["Ruby", "Sapphire", "Emerald", "Amber"];
+      const pol = (a0, a1, r0, r1, n = 8) => { const o = [], i = []; for (let k = 0; k <= n; k++) { const a = a0 + (a1 - a0) * k / n; o.push([CX + r1 * Math.cos(a), CY + r1 * Math.sin(a)]); } for (let k = n; k >= 0; k--) { const a = a0 + (a1 - a0) * k / n; i.push([CX + r0 * Math.cos(a), CY + r0 * Math.sin(a)]); } return o.concat(i); };
+      const S60 = Math.PI / 3, A0 = -Math.PI / 2;
+      const panes = [{ id: 0, pts: pol(0, 2 * Math.PI, 30, 30, 24).slice(0, 25), adj: [1, 2, 3, 4, 5, 6] }];
+      for (let k = 0; k < 6; k++) panes.push({ id: 1 + k, pts: pol(A0 + S60 * k, A0 + S60 * (k + 1), 31, 78), adj: [0, 1 + (k + 1) % 6, 1 + (k + 5) % 6, 7 + k, 7 + (k + 5) % 6] });
+      for (let j = 0; j < 6; j++) panes.push({ id: 7 + j, pts: pol(A0 + S60 * j - S60 / 2, A0 + S60 * j + S60 / 2, 79, 128), adj: [7 + (j + 1) % 6, 7 + (j + 5) % 6, 1 + j, 1 + (j + 1) % 6] });
+      // fix asymmetric adjacency written above: outer j touches inner j-1 and inner j  (outer j spans [60j-30, 60j+30] around inner indexes)
+      panes.forEach(p => { if (p.id >= 7) { const j = p.id - 7; p.adj = [7 + (j + 1) % 6, 7 + (j + 5) % 6, 1 + j, 1 + (j + 5) % 6]; } if (p.id >= 1 && p.id <= 6) { const k = p.id - 1; p.adj = [0, 1 + (k + 1) % 6, 1 + (k + 5) % 6, 7 + k, 7 + (k + 1) % 6]; } });
+      const locked = { 0: 3, 1: 0, 10: 1, 12: 2 };
+      let col = panes.map(p => locked[p.id] !== undefined ? locked[p.id] : -1), sel = 0, history = [], solved = false;
+      const cen = pts => { let x = 0, y = 0; pts.forEach(p => { x += p[0]; y += p[1]; }); return [x / pts.length, y / pts.length]; };
+      const ptsStr = pts => pts.map(p => p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ");
+      mount.innerHTML = `
+        <div class="s16-root w-full max-w-xl flex flex-col items-center gap-3">
+          <div class="w-full rounded-2xl overflow-hidden border-2 border-[#CFC3A8] shadow-md tk-noselect" style="background:#2A2438">
+            <svg class="s16-svg block w-full" viewBox="0 0 ${W} ${H}" style="touch-action:none">
+              <defs><radialGradient id="s16-glow"><stop offset="0" stop-color="#FFF6D0" stop-opacity=".95"/><stop offset="1" stop-color="#FFF6D0" stop-opacity="0"/></radialGradient></defs>
+              <circle class="s16-halo" cx="${CX}" cy="${CY}" r="190" fill="url(#s16-glow)" opacity="0"/>
+              <circle cx="${CX}" cy="${CY}" r="136" fill="#1B1626" stroke="#6B5A4A" stroke-width="8"/>
+              ${panes.map(p => { const c = cen(p.pts); return `<polygon class="s16-pane" data-id="${p.id}" data-cx="${c[0].toFixed(1)}" data-cy="${c[1].toFixed(1)}" data-adj="${p.adj.join(",")}" data-locked="${locked[p.id] !== undefined ? 1 : 0}" points="${ptsStr(p.pts)}" fill="#3A3350" stroke="#1B1626" stroke-width="4" stroke-linejoin="round" style="cursor:pointer"/>`; }).join("")}
+              <g class="s16-marks" pointer-events="none">${panes.filter(p => locked[p.id] !== undefined).map(p => { const c = cen(p.pts); return `<text x="${c[0]}" y="${c[1] + 5}" text-anchor="middle" font-size="14" fill="rgba(255,255,255,.75)">🔒</text>`; }).join("")}</g>
+            </svg>
+          </div>
+          <div class="flex gap-2 flex-wrap justify-center">${COLS.map((c, i) => `<button class="s16-sw rounded-xl px-3 py-2 text-xs font-semibold text-white" data-c="${i}" style="background:${c};min-width:76px">${NAMES[i]}</button>`).join("")}</div>
+          <div class="tk-status">Choose a glass colour, then tap panes to fill them.</div>
+          <div class="s16-actions flex gap-2"><button class="s16-undo px-3 py-2 rounded-xl border border-[#CFC3A8] bg-white text-sm text-[#5C5346]">↶ Undo</button><button class="s16-clear px-3 py-2 rounded-xl border border-[#CFC3A8] bg-white text-sm text-[#5C5346]">Clear</button></div>
+        </div>`;
+      const root = mount.querySelector(".s16-root"), svgEl = mount.querySelector(".s16-svg"), say = (m, k) => TK.status(root, m, k);
+      const els = panes.map(p => mount.querySelector(`.s16-pane[data-id="${p.id}"]`));
+      const conflicts = () => { const bad = new Set(); panes.forEach(p => p.adj.forEach(q => { if (col[p.id] >= 0 && col[p.id] === col[q]) { bad.add(p.id); bad.add(q); } })); return bad; };
+      const render = () => {
+        const bad = conflicts();
+        els.forEach((el, i) => { el.setAttribute("fill", col[i] >= 0 ? COLS[col[i]] : "#3A3350"); el.setAttribute("stroke", bad.has(i) ? "#FF5A5A" : "#1B1626"); el.setAttribute("stroke-width", bad.has(i) ? 6 : 4); el.style.opacity = col[i] >= 0 ? ".95" : "1"; });
+        mount.querySelectorAll(".s16-sw").forEach(b => { const on = +b.dataset.c === sel; b.style.outline = on ? "3px solid #231F20" : "none"; b.style.transform = on ? "translateY(-2px)" : ""; });
+        return bad;
+      };
+      const check = () => {
+        if (solved) return;
+        const bad = render(); if (bad.size) { say("Two touching panes share a colour. Look for the red lead.", "warn"); return; }
+        const filled = col.every(c => c >= 0), uses = COLS.map((_, i) => col.filter(c => c === i).length);
+        if (!filled) { say(`${col.filter(c => c < 0).length} panes still empty.`, "info"); return; }
+        if (uses.some(n => n < 2)) { say("Every colour should appear at least twice for a balanced window.", "info"); return; }
+        win();
+      };
+      function win() {
+        solved = true; render();
+        const h = mount.querySelector(".s16-halo"); h.style.transition = "opacity 1s"; h.setAttribute("opacity", "1");
+        mount.querySelectorAll(".s16-pane").forEach(el => { el.style.filter = "brightness(1.25) saturate(1.2)"; });
+        say("The sun comes through, what a window! 🌈", "ok");
+        TK.keepsake(mount.querySelector(".s16-actions"), svgEl, "my-stained-glass.png", "💾 Save my window");
+        TK.win("You filled the whole rose window with no clashing panes!", 2300);
+      }
+      const paint = (id, forceClear) => {
+        if (solved || locked[id] !== undefined) return false;
+        const nv = (col[id] === sel && !forceClear) ? -1 : sel; if (col[id] === nv) return false;
+        col[id] = nv; playTone(420 + sel * 90, 0.07, "sine", 0.05); return true;
+      };
+      let painting = false, lastEl = null, snap = null;
+      const hit = e => { const t = document.elementFromPoint(e.clientX, e.clientY); return t && t.classList && t.classList.contains("s16-pane") ? +t.dataset.id : null; };
+      svgEl.addEventListener("pointerdown", e => {
+        if (solved) return; const id = hit(e); if (id === null) return;
+        e.preventDefault(); svgEl.setPointerCapture(e.pointerId); snap = col.slice(); painting = true; lastEl = id;
+        if (locked[id] !== undefined) { say("That pane is fixed.", "info"); painting = false; return; }
+        paint(id); render();
+      });
+      svgEl.addEventListener("pointermove", e => {
+        if (!painting || solved) return; const id = hit(e); if (id === null || id === lastEl) return; lastEl = id;
+        if (locked[id] === undefined && col[id] !== sel) { col[id] = sel; render(); }
+      });
+      const end = () => { if (!painting) return; painting = false; if (snap && snap.join() !== col.join()) { history.push(snap); if (history.length > 40) history.shift(); } snap = null; check(); };
+      svgEl.addEventListener("pointerup", end); svgEl.addEventListener("pointercancel", end);
+      mount.querySelectorAll(".s16-sw").forEach(b => b.onclick = () => { sel = +b.dataset.c; render(); });
+      mount.querySelector(".s16-undo").onclick = () => { if (solved || !history.length) return; col = history.pop(); render(); say("Undone.", "info"); };
+      mount.querySelector(".s16-clear").onclick = () => { if (solved) return; history.push(col.slice()); col = panes.map(p => locked[p.id] !== undefined ? locked[p.id] : -1); render(); say("Cleared. Fixed panes stay.", "info"); };
+      render();
+      currentAutoSolveFn = () => {
+        if (solved) return;
+        // backtracking solve
+        const order = panes.map(p => p.id), res = col.slice();
+        const ok = (id, c) => panes[id].adj.every(q => res[q] !== c);
+        const rec = i => { if (i === order.length) return COLS.every((_, c) => res.filter(v => v === c).length >= 2); const id = order[i]; if (locked[id] !== undefined) return rec(i + 1); for (let c = 0; c < 4; c++) { if (ok(id, c)) { res[id] = c; if (rec(i + 1)) return true; res[id] = -1; } } return false; };
+        rec(0); col = res; win();
+      };
+    }
     // ##### PART ch4 END #####
 
     // ##### PART ch5 BEGIN #####
