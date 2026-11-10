@@ -6904,6 +6904,38 @@
       TK.howto(mount, "Hang each painting under the chapter it belongs to.", ["Each painting shows <b>one craft</b> from your journey: paint, paper, clay, glass, thread or darkroom.", "<b>Drag</b> a painting into the empty frame whose <b>plaque</b> matches it.", "Drag a hung painting to move it, or drop another on top to swap. Hang all six correctly to finish."]);
       currentAutoSolveFn = () => { if (solved) return; place = [0, 1, 2, 3, 4, 5]; render(); finish(); };
     }
+
+    // ---- "How to play" cards for the remaining stations ----
+    (function () {
+      const H = {
+        1: ["Mix paint until it matches the terracotta swatch.", ["<b>Tap</b> a pigment pot to add a drop (hold to pour).", "<b>Stir</b> the paint well with your finger so the colours melt together.", "Watch the <b>Match meter</b>. Get it to 90% or more."]],
+        3: ["Copy the butterfly onto the other side with the mirror pantograph.", ["The <b>dotted wings</b> on the left are the pattern to trace.", "<b>Trace the dotted lines</b> with your finger. The right side copies you as a mirror image.", "Cover all of the dotted line to finish."]],
+        4: ["Make an ink painting, then fold the paper to print it.", ["<b>Paint</b> on the left half with your finger. Slow = thick ink, fast = thin.", "Press <b>Fold</b> so the paper prints a mirror image on the right.", "<b>Save</b> your inkblot as a keepsake."]],
+        5: ["Follow the dotted flourish with your pen nib, in order.", ["Put your finger on the <b>gold dot</b>.", "<b>Follow the dotted swash</b> to the red seal without lifting.", "Go slowly for thick ink, quickly for thin."]],
+        6: ["Put the colour chips in order so the strip fades smoothly.", ["The <b>first and last chips</b> are fixed.", "<b>Drag the six chips</b> in between into the order that fades smoothly from one end to the other.", "No sudden jumps between neighbours."]],
+        8: ["Paste every piece onto its outline on the scrapbook page.", ["<b>Drag</b> each piece onto its dashed outline. It sticks when it's close.", "Pieces overlap, so <b>paste the ones that go underneath first</b>.", "<b>Tap</b> a pasted piece to lift it off again."]],
+        9: ["Fold the paper so it covers the dashed shape.", ["<b>Drag</b> from one paper point (a corner or the middle of an edge) onto another.", "The paper <b>folds</b> so the first point lands on the second.", "Make the folded shape cover the dashed outline. Use <b>Undo</b> if needed."]],
+        11: ["Roll paper coils the right size and glue them into a flower.", ["<b>Drag in circles</b> around the tool to roll the coil bigger (clockwise).", "Match the <b>dashed ring</b>, then press <b>Glue</b>.", "Make all three coils."]],
+        12: ["Cover all three rips with washi tape.", ["<b>Press</b> where a tape strip should start, <b>drag</b> to stretch it, <b>lift</b> to stick.", "Every tear must be covered <b>from end to end</b>.", "You only have 4 strips. <b>Tap</b> a strip to peel it off."]],
+        13: ["Carve the lino block so your print matches the target.", ["<b>Carve</b> the block on the left with your finger. Carved parts print white.", "Remember the print comes out <b>flipped left-to-right</b>.", "Pull a print, match the target, then <b>save</b> it."]],
+        14: ["Shape the spinning clay into the dashed vase.", ["<b>Press</b> a finger on the side of the clay: push in or pull out.", "Match the <b>dashed vase outline</b>.", "Then press <b>Fire the kiln</b>."]],
+        15: ["Rebuild the broken plate and mend the cracks with gold.", ["<b>Drag each shard</b> from the tray into the dashed circle so the pattern lines up.", "When the plate is whole, <b>trace every crack</b> with your finger to fill it with gold.", "Cover all the cracks."]],
+        16: ["Colour the stained glass window so no touching panes match.", ["<b>Pick a glass colour</b>, then tap or drag across panes to fill them.", "Panes that touch along a lead line must be <b>different colours</b> (or the lead glows red).", "Fill every pane and use each colour at least twice."]],
+        17: ["Make the shadows on the screen fill the dashed bird.", ["<b>Drag</b> a cardstock piece to move it. Turn it with its <b>round gold handle</b>.", "The <b>lamp slider</b> makes all shadows bigger or smaller.", "Watch the <b>screen on the right</b>, not the pieces."]],
+        18: ["Light the scene so it matches the mood card.", ["Look at the <b>mood card</b> on the left.", "Turn the <b>Red, Green and Blue dials</b> to colour the lamp on your diorama.", "Make your scene look like the card."]],
+        19: ["Hang the shapes so the beam sits level.", ["Bigger shapes are <b>heavier</b>. Shapes farther from the middle <b>pull harder</b>.", "<b>Drag</b> the three shapes onto the dashed rings on the right arm.", "The beam is level when both sides balance."]],
+        20: ["Copy the faint thread pattern with string between the pegs.", ["<b>Press</b> on a peg and <b>swipe</b> to another peg to stretch a thread.", "Copy the faint dotted pattern <b>exactly</b>.", "Swipe over a thread again to take it off."]],
+        21: ["Weave the cloth to match the little chart.", ["A <b>dark square</b> on the chart means that thread shows on top.", "<b>Tap the round heddles</b> to lift the right threads for this row.", "Then <b>swipe the shuttle across</b> to the right. Do all six rows."]],
+        22: ["Fill the gaps in the bracelet pattern.", ["Work out the <b>pattern</b> in the beads (the runs get longer).", "<b>Drag beads</b> from the box onto the empty gaps.", "Tap a bead you placed to take it off."]],
+        23: ["Tie the knots in the same order as the sample strip.", ["Each mark on the strip is a knot: <b>/</b> or <b>\\</b>.", "<b>Swipe right</b> for a / knot, <b>swipe left</b> for a \\ knot.", "Tie them top to bottom. Use <b>Undo</b> for a wrong one."]],
+        25: ["Stitch the picture shown on the chart.", ["The <b>key</b> says which colour each symbol means.", "<b>Pick a thread</b>, then swipe across cloth squares to stitch the matching ones.", "The ✂️ unpicks. Match the chart, then <b>save</b> it."]]
+      };
+      const wrap = (fn, n) => function (m) { fn(m); TK.howto(m, H[n][0], H[n][1]); };
+      buildStage1 = wrap(buildStage1, 1); buildStage3 = wrap(buildStage3, 3); buildStage4 = wrap(buildStage4, 4); buildStage5 = wrap(buildStage5, 5); buildStage6 = wrap(buildStage6, 6);
+      buildStage8 = wrap(buildStage8, 8); buildStage9 = wrap(buildStage9, 9); buildStage11 = wrap(buildStage11, 11); buildStage12 = wrap(buildStage12, 12); buildStage13 = wrap(buildStage13, 13);
+      buildStage14 = wrap(buildStage14, 14); buildStage15 = wrap(buildStage15, 15); buildStage16 = wrap(buildStage16, 16); buildStage17 = wrap(buildStage17, 17); buildStage18 = wrap(buildStage18, 18);
+      buildStage19 = wrap(buildStage19, 19); buildStage20 = wrap(buildStage20, 20); buildStage21 = wrap(buildStage21, 21); buildStage22 = wrap(buildStage22, 22); buildStage23 = wrap(buildStage23, 23); buildStage25 = wrap(buildStage25, 25);
+    })();
     // ##### PART ch6 END #####
 
     // =========================================================================
