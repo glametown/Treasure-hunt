@@ -20,6 +20,11 @@ The PIN is checked in the browser (`ORGANIZER_PIN` in `index.html`), so it keeps
 ## Editing the gifts / stations
 Station text, gift names and gift notes are in the `STATIONS` array near the top of the `<script>` in `index.html`.
 
+**Gift numbers are shuffled.** The number players see ("Gift #13") is not the station number. The mapping is the `GIFT_NO` table right above `STATIONS` (station id → gift number, every number 1-30 used once). Edit that table to renumber the gifts to match your physical presents.
+
+## The 30 games
+Every station is a hands-on craft game (finger painting, folding, cutting, mending, weaving, dyeing, stitching, balancing, focusing, and so on). Each opens with a "Goal + 3 steps" card. Stations 4, 10, 13, 16, 24, 25 and 29 end with a **Save my creation** button so she can keep what she made.
+
 ### Changing styles
 Utility classes are compiled with Tailwind CSS 3.4 and inlined in `<style id="tw-compiled">`. If you add new Tailwind classes, recompile:
 ```bash
