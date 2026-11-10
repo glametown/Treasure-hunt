@@ -316,6 +316,10 @@
       <div class="mt-4 p-3 rounded-xl bg-[#F6F0E4] border border-[#E5DEC9] text-xs text-[#4B3E2A]" id="modal-craft-summary">
         Craft Mastered! Added to your 30-Gift Atelier Vault.
       </div>
+      <div id="birthday-box" style="display:none;margin-top:14px;padding:12px;border-radius:14px;background:linear-gradient(135deg,#FFF1C9,#FBD9C8);border:1px solid #D4AF37;text-align:center">
+        <div style="font-size:22px;font-weight:700;font-family:'Playfair Display',Georgia,serif;color:#8C2D19">🎂 Happy Birthday, Anamika! 🎂</div>
+        <button id="btn-birthday-song" type="button" class="atelier-btn" style="margin-top:8px;padding:8px 14px;border-radius:12px;background:#283655;color:#fff;font-size:13px;font-weight:600">🎶 Play the birthday song</button>
+      </div>
       <div class="mt-5 flex items-center justify-center gap-3">
         <button id="btn-modal-stay" type="button" class="atelier-btn px-4 py-2.5 rounded-xl border border-[#E5DEC9] bg-white hover:bg-[#F6F0E4] text-xs sm:text-sm font-semibold text-[#231F20]">
           Admire Craft
@@ -820,6 +824,23 @@
       } catch (e) {}
     }
 
+    // "Happy Birthday to You" (public-domain melody), synthesised with the Web Audio API
+    let birthdayTimers = 0;
+    function playBirthdaySong(force) {
+      const was = appState.soundEnabled; if (force) appState.soundEnabled = true;
+      const ctx = getAudioCtx(); appState.soundEnabled = was; if (!ctx) return false;
+      const N = { G4: 392, A4: 440, B4: 493.88, C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, C3: 130.81, G3: 196, F3: 174.61 };
+      const tune = [["G4", .75], ["G4", .25], ["A4", 1], ["G4", 1], ["C5", 1], ["B4", 2], ["G4", .75], ["G4", .25], ["A4", 1], ["G4", 1], ["D5", 1], ["C5", 2],
+        ["G4", .75], ["G4", .25], ["G5", 1], ["E5", 1], ["C5", 1], ["B4", 1], ["A4", 1], ["F5", .75], ["F5", .25], ["E5", 1], ["C5", 1], ["D5", 1], ["C5", 3]];
+      const beat = 0.5; let t = ctx.currentTime + 0.15;
+      const note = (f, at, dur, vol, type) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = type; o.frequency.setValueAtTime(f, at); g.gain.setValueAtTime(0.0001, at); g.gain.linearRampToValueAtTime(vol, at + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, at + dur); o.connect(g); g.connect(ctx.destination); o.start(at); o.stop(at + dur + 0.05); };
+      tune.forEach(([n, b]) => { const d = b * beat; note(N[n], t, d * 0.95 + 0.1, 0.12, "triangle"); note(N[n] * 2, t, d * 0.8 + 0.05, 0.03, "sine"); t += d; });
+      // gentle bass on the first beat of each line
+      const bass = [[0, "C3"], [6, "C3"], [12, "C3"], [18, "F3"]]; let at = ctx.currentTime + 0.15;
+      [[3.0, "C3"], [3.0, "G3"], [3.0, "C3"], [3.0, "F3"], [1.0, "C3"]].forEach(([b, n]) => { note(N[n], at, b * beat * 0.9, 0.07, "sine"); at += b * beat * 2; });
+      return true;
+    }
+
     function playUnlockFanfare() {
       const notes = [523.25, 659.25, 783.99, 1046.5];
       notes.forEach((n, idx) => {
@@ -1054,6 +1075,8 @@
       document.getElementById("modal-craft-summary").textContent =
         summaryMsg || `Station #${station.id} (${station.title}) mastered!`;
       document.getElementById("unlock-modal").classList.remove("hidden");
+      const bb = document.getElementById("birthday-box"); if (bb) bb.style.display = id === 30 ? "block" : "none";
+      if (id === 30) setTimeout(() => playBirthdaySong(false), 900);
     }
 
     function goToStage(stageNum) {
@@ -7051,6 +7074,7 @@
         document.getElementById("vault-modal").classList.remove("hidden");
       });
 
+      document.getElementById("btn-birthday-song").addEventListener("click", () => { playBirthdaySong(true); launchConfetti(); });
       document.getElementById("btn-close-vault").addEventListener("click", () => {
         document.getElementById("vault-modal").classList.add("hidden");
       });
