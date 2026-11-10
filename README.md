@@ -1,6 +1,6 @@
-# Anamika's 30-Gift Art & Craft Atelier Treasure Hunt 🎁🎨
+# Anamika's 30th Birthday Bash 🎉🎁🎨
 
-A single-file interactive treasure hunt: 30 hands-on craft mini-games (6 chapters × 5 stations). Solve each station to unseal a gift card.
+A single-file interactive treasure hunt: 30 hands-on craft mini-games (6 chapters × 5 stations). Solve each station to unseal a gift card. The grand finale (station 30) only opens once the other 29 stations are done.
 
 ## Live website (GitHub Pages)
 `https://glametown.github.io/Treasure-hunt/` (Settings → Pages → Branch: `main`, Folder: `/ (root)`)
