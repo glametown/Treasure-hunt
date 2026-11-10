@@ -6773,6 +6773,67 @@
       TK.howto(mount, "Fit all seven pieces into the dark square.", ["<b>Drag</b> a piece onto the square.", "<b>Tap</b> a piece (don't drag) to turn it 45°.", "Pieces <b>click into place</b> when they are close and turned the right way. No gaps, no overlaps."]);
       currentAutoSolveFn = () => { if (solved) return; st = items.map(it => ({ id: it.id, type: it.type, x: it.tgt[0], y: it.tgt[1], r: slotRot[it.id] })); render(); finish(); };
     }
+
+    STATION_PATCH[29] = {
+      title: "Mandala Sand Drawing",
+      subtitle: "Trace the dotted pattern in one slice and the sand mirrors it all the way round.",
+      mechanic: "Sand Mandala Keepsake",
+      instructions: "Draw on the dark tray with your finger and the sand pours out in 16 mirrored copies at once, like a mandala. Trace the dotted lines you see in the lit slice (bottom-right). The same pattern appears all the way round. When the whole dotted pattern is covered and you haven't drawn much extra, your mandala is done and you can save it.",
+      hint: "You only need to draw in one slice. Start with the small curve near the middle, then the pointed petal, then the zigzag near the edge. Draw slowly so the sand covers the dots."
+    };
+
+    function buildStage29(mount) {
+      const S = 300, C = 150, TAU = Math.PI * 2;
+      const pol = (r, deg) => [C + r * Math.cos(deg * Math.PI / 180), C + r * Math.sin(deg * Math.PI / 180)];
+      const ring = (r, a0, a1, n = 12) => Array.from({ length: n + 1 }, (_, i) => pol(r, a0 + (a1 - a0) * i / n));
+      const GUIDE = [ring(45, 0, 45), [[45, 0], [70, 12], [100, 22.5], [70, 33], [45, 45]].map(([r, a]) => pol(r, a)), [[125, 0], [105, 11], [125, 22.5], [105, 34], [125, 45]].map(([r, a]) => pol(r, a))];
+      const rot = (p, k, flip) => { let x = p[0] - C, y = p[1] - C; if (flip) y = -y; const a = k * Math.PI / 4, c = Math.cos(a), s = Math.sin(a); return [C + x * c - y * s, C + x * s + y * c]; };
+      const copies = p => { const o = []; for (let k = 0; k < 8; k++) { o.push(rot(p, k, false)); o.push(rot(p, k, true)); } return o; };
+      const dense = poly => { const o = []; for (let i = 0; i < poly.length - 1; i++) { const a = poly[i], b = poly[i + 1], n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 4)); for (let j = 0; j < n; j++) o.push([a[0] + (b[0] - a[0]) * j / n, a[1] + (b[1] - a[1]) * j / n]); } o.push(poly[poly.length - 1]); return o; };
+      const gPts = []; GUIDE.forEach(poly => dense(poly).forEach(p => copies(p).forEach(q => gPts.push(q))));
+      const gridK = 10, bucket = new Map(); const key = (x, y) => Math.floor(x / gridK) + "," + Math.floor(y / gridK);
+      const addB = (m, p) => { const k = key(p[0], p[1]); if (!m.has(k)) m.set(k, []); m.get(k).push(p); };
+      const near = (m, p, d) => { const cx = Math.floor(p[0] / gridK), cy = Math.floor(p[1] / gridK), d2 = d * d; for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) { const a = m.get((cx + i) + "," + (cy + j)); if (a && a.some(q => (q[0] - p[0]) ** 2 + (q[1] - p[1]) ** 2 <= d2)) return true; } return false; };
+      const gB = new Map(); gPts.forEach(p => addB(gB, p));
+      let sand = [], sandB = new Map(), solved = false, strays = 0, total = 0;
+      mount.innerHTML = `
+        <div class="s29-root w-full max-w-xl flex flex-col items-center gap-3">
+          <div class="s29-wrap relative w-full max-w-sm rounded-2xl overflow-hidden border-2 border-[#CFC3A8] shadow-md tk-noselect" style="background:#1D2233;aspect-ratio:1/1" data-guide='${JSON.stringify(GUIDE.map(g => g.map(p => [+p[0].toFixed(1), +p[1].toFixed(1)])))}'>
+            <canvas class="s29-guide absolute inset-0 w-full h-full" width="600" height="600"></canvas>
+            <canvas class="s29-sand absolute inset-0 w-full h-full" width="600" height="600" style="touch-action:none"></canvas>
+          </div>
+          <div class="tk-status">Trace the dotted lines in the lit slice (bottom-right).</div>
+          <div class="s29-actions flex gap-2 flex-wrap justify-center"><button class="s29-clear px-3 py-2 rounded-xl border border-[#CFC3A8] bg-white text-sm text-[#5C5346]">Smooth the sand</button></div>
+        </div>`;
+      const root = mount.querySelector(".s29-root"), wrap = mount.querySelector(".s29-wrap"), gc = mount.querySelector(".s29-guide"), sc = mount.querySelector(".s29-sand"), gx = gc.getContext("2d"), sx = sc.getContext("2d"), say = (m, k) => TK.status(root, m, k);
+      gx.scale(2, 2); sx.scale(2, 2);
+      const drawGuide = () => {
+        gx.clearRect(0, 0, S, S); gx.fillStyle = "rgba(255,255,255,.06)"; gx.beginPath(); gx.moveTo(C, C); gx.arc(C, C, 140, 0, Math.PI / 4); gx.closePath(); gx.fill();
+        gx.fillStyle = "rgba(255,230,160,.55)"; gPts.forEach(p => { gx.beginPath(); gx.arc(p[0], p[1], 1.6, 0, TAU); gx.fill(); });
+        gx.strokeStyle = "rgba(255,255,255,.25)"; gx.lineWidth = 1; gx.beginPath(); gx.arc(C, C, 140, 0, TAU); gx.stroke();
+      };
+      drawGuide();
+      const pt = e => { const r = sc.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * S, (e.clientY - r.top) / r.height * S]; };
+      const seg = (a, b) => { sx.strokeStyle = "#EBCB8B"; sx.lineWidth = 5; sx.lineCap = "round"; const A = copies(a), B = copies(b); for (let i = 0; i < A.length; i++) { sx.beginPath(); sx.moveTo(A[i][0], A[i][1]); sx.lineTo(B[i][0], B[i][1]); sx.stroke(); } };
+      const addSand = p => { copies(p).forEach(q => { sand.push(q); addB(sandB, q); }); total++; if (!near(gB, p, 16) && !copies(p).some(q => near(gB, q, 16))) strays++; };
+      const coverage = () => { let hit = 0; gPts.forEach(p => { if (near(sandB, p, 9)) hit++; }); return hit / gPts.length; };
+      const finish = () => {
+        solved = true; drawGuide(); gx.clearRect(0, 0, S, S); say("The mandala is complete! 🌸", "ok");
+        const out = document.createElement("canvas"); out.width = out.height = 600; const o = out.getContext("2d"); o.fillStyle = "#1D2233"; o.fillRect(0, 0, 600, 600); o.drawImage(sc, 0, 0);
+        TK.keepsake(mount.querySelector(".s29-actions"), out, "my-mandala.png", "💾 Save my mandala"); TK.win("Your sand mandala came out perfectly symmetrical!", 2000);
+      };
+      const check = () => { if (solved) return; const cov = coverage(), strayRatio = total ? strays / total : 0; root.dataset.cov = cov.toFixed(2); root.dataset.stray = strayRatio.toFixed(2);
+        if (cov >= 0.9 && strayRatio <= 0.25) finish(); else if (cov >= 0.9) say("Pattern covered, but there is too much extra sand. Smooth the sand and try again.", "warn"); else say(`${Math.round(cov * 100)}% of the pattern covered.`, "info"); };
+      sc.addEventListener("pointerdown", e => {
+        if (solved) return; e.preventDefault(); sc.setPointerCapture(e.pointerId); let last = pt(e); seg(last, last); addSand(last);
+        const mv = ev => { const p = pt(ev), n = Math.max(1, Math.ceil(Math.hypot(p[0] - last[0], p[1] - last[1]) / 3)); let prev = last; for (let i = 1; i <= n; i++) { const q = [last[0] + (p[0] - last[0]) * i / n, last[1] + (p[1] - last[1]) * i / n]; seg(prev, q); addSand(q); prev = q; } last = p; };
+        const up = () => { sc.removeEventListener("pointermove", mv); sc.removeEventListener("pointerup", up); sc.removeEventListener("pointercancel", up); check(); };
+        sc.addEventListener("pointermove", mv); sc.addEventListener("pointerup", up); sc.addEventListener("pointercancel", up);
+      });
+      mount.querySelector(".s29-clear").onclick = () => { if (solved) return; sx.clearRect(0, 0, S, S); sand = []; sandB = new Map(); strays = 0; total = 0; say("Sand smoothed. Trace the dotted lines again.", "info"); root.dataset.cov = "0"; };
+      TK.howto(mount, "Draw a mandala by tracing the dotted pattern.", ["<b>Draw</b> on the dark tray with your finger. The sand pours out in <b>16 mirrored copies</b> at once.", "<b>Trace the dotted lines</b> in the lit slice (bottom-right). The same dots appear all the way round.", "Cover all the dots without too much extra sand, and your mandala is finished."]);
+      currentAutoSolveFn = () => { if (solved) return; GUIDE.forEach(poly => { const d = dense(poly); d.forEach((p, i) => { if (i) seg(d[i - 1], p); addSand(p); }); }); finish(); };
+    }
     // ##### PART ch6 END #####
 
     // =========================================================================
