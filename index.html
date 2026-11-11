@@ -5788,14 +5788,14 @@
       title: "Linocut Print Studio",
       subtitle: "Carve the block so that the print comes out like the target. Remember it prints in mirror.",
       mechanic: "Mirrored Linocut Carving",
-      instructions: "Carve the lino block on the left with your finger. Whatever you carve away prints white; the rest prints black. When you pull a print, it comes out flipped left-to-right. Carve the block so that your print matches the target print. Then save your print.",
-      hint: "The block is a mirror image of the print. The leaf in the target points right, so on the block it has to point left. Carve only the white lines, and leave the rest of the block alone."
+      instructions: "Carve the lino block on the left with your finger, following the dotted lines on it. The dotted lines are already flipped for you, because a print comes out as a mirror image of the block. Whatever you carve away prints white. Pull a print, compare it with the target, then save it.",
+      hint: "Just follow the dotted lines on the green block with your finger: the long stem, the leaf and the little dot. Carve right along the dots. Don\'t worry about being perfect, then press Pull a print."
     };
 
     function buildStage13(mount) {
       const W = 540, H = 300, S = 250, BX = 5, BY = 25, TX = 275, TY = 40, PX = 410, PS = 125;
-      const drawMotif = (c, col) => {
-        c.strokeStyle = col; c.fillStyle = col; c.lineWidth = 11; c.lineCap = "round"; c.lineJoin = "round";
+      const drawMotif = (c, col, lw = 11) => {
+        c.strokeStyle = col; c.fillStyle = col; c.lineWidth = lw; c.lineCap = "round"; c.lineJoin = "round";
         c.beginPath(); c.moveTo(100, 220); c.quadraticCurveTo(95, 150, 130, 60); c.stroke();
         c.beginPath(); c.moveTo(115, 140); c.quadraticCurveTo(170, 80, 215, 110); c.quadraticCurveTo(170, 160, 115, 140); c.stroke();
         c.beginPath(); c.arc(60, 200, 8, 0, 6.2832); c.fill();
@@ -5828,7 +5828,7 @@
       const tMask = maskOf(x => { x.scale(GRID / S, GRID / S); x.drawImage(tg, 0, 0); });   // white strokes are bright
       const T = new Uint8Array(GRID * GRID); for (let i = 0; i < T.length; i++) T[i] = tMask[i * 4] > 128 ? 1 : 0;
       const dil = (arr, r) => { const o = new Uint8Array(arr.length); for (let y = 0; y < GRID; y++) for (let x = 0; x < GRID; x++) { if (!arr[y * GRID + x]) continue; for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) { const yy = y + dy, xx = x + dx; if (yy >= 0 && yy < GRID && xx >= 0 && xx < GRID) o[yy * GRID + xx] = 1; } } return o; };
-      const TD = dil(T, 3);
+      const TD = dil(T, 5);
       const carvedMask = () => { // mirrored, because the print flips the block
         const d = maskOf(x => { x.translate(GRID, 0); x.scale(-GRID / S, GRID / S); x.drawImage(bk, 0, 0); });
         const o = new Uint8Array(GRID * GRID); for (let i = 0; i < o.length; i++) o[i] = d[i * 4 + 3] < 128 ? 1 : 0; return o;
@@ -5850,6 +5850,8 @@
         g.fillStyle = "#D7C7A0"; g.fillRect(BX - 3, BY - 3, S + 6, S + 6);
         g.fillStyle = "#EFE6D0"; g.fillRect(BX, BY, S, S);
         g.drawImage(bk, BX, BY);
+        // guide: the target already flipped for the block, drawn as dotted lines to carve along
+        g.save(); g.beginPath(); g.rect(BX, BY, S, S); g.clip(); g.translate(BX + S, BY); g.scale(-1, 1); g.setLineDash([2, 9]); drawMotif(g, "rgba(255,240,190,.95)", 3.5); g.restore();
         g.fillStyle = "#6B5A4A"; g.font = "11px sans-serif"; g.fillText("lino block", BX + 4, 15); g.fillText("target print", TX, 30); g.fillText("your print", PX, 30);
         g.fillStyle = "#FFFDF4"; g.fillRect(TX, TY, PS, PS); g.drawImage(tg, TX, TY, PS, PS);
         g.strokeStyle = "#B9A57A"; g.strokeRect(TX - .5, TY - .5, PS + 1, PS + 1); g.strokeRect(PX - .5, TY - .5, PS + 1, PS + 1);
@@ -5879,12 +5881,12 @@
         const CD = dil(C, 1);
         for (let i = 0; i < T.length; i++) { if (T[i]) { tot++; if (CD[i]) hit++; } if (C[i]) { car++; if (!TD[i]) stray++; } }
         const cov = hit / tot, st = car ? stray / car : 0;
-        if (cov >= 0.8 && st <= 0.2) {
+        if (cov >= 0.75 && st <= 0.3) {
           solved = true; say("A crisp print! Save it as your keepsake. 🖨️", "ok");
           TK.keepsake(mount.querySelector(".s13-actions"), () => { const c = document.createElement("canvas"); c.width = c.height = 500; paintPrint(c.getContext("2d"), 0, 0, 500); return c; }, "my-linocut-print.png", "💾 Save my print");
           TK.win("You carved the block and pulled a perfect mirrored print!", 2400);
-        } else if (cov < 0.8 && car < tot * 0.4) say("Not enough carved yet. Carve along all the white lines in the target.", "warn");
-        else if (cov < 0.8) say("Your print doesn't match yet. Check which way the leaf points. The block is flipped.", "warn");
+        } else if (cov < 0.75 && car < tot * 0.4) say("Not enough carved yet. Carve along all of the dotted lines on the block.", "warn");
+        else if (cov < 0.75) say("Your print doesn't match yet. Some of the dotted lines on the block are still uncarved.", "warn");
         else say("The lines are there, but you carved too much extra. Undo the stray cuts.", "warn");
       };
       currentAutoSolveFn = () => {
@@ -7047,7 +7049,7 @@
         9: ["Fold the paper so it covers the dashed shape.", ["<b>Drag</b> from one paper point (a corner or the middle of an edge) onto another.", "The paper <b>folds</b> so the first point lands on the second.", "Make the folded shape cover the dashed outline. Use <b>Undo</b> if needed."]],
         11: ["Roll paper coils the right size and glue them into a flower.", ["<b>Drag in circles</b> around the tool to roll the coil bigger (clockwise).", "Match the <b>dashed ring</b>, then press <b>Glue</b>.", "Make all three coils."]],
         12: ["Cover all three rips with washi tape.", ["<b>Press</b> where a tape strip should start, <b>drag</b> to stretch it, <b>lift</b> to stick.", "Every tear must be covered <b>from end to end</b>.", "You only have 4 strips. <b>Tap</b> a strip to peel it off."]],
-        13: ["Carve the lino block so your print matches the target.", ["<b>Carve</b> the block on the left with your finger. Carved parts print white.", "Remember the print comes out <b>flipped left-to-right</b>.", "Pull a print, match the target, then <b>save</b> it."]],
+        13: ["Carve along the dotted lines to print the leaf.", ["<b>Carve</b> the green block with your finger, <b>following the dotted lines</b> (they are already flipped for you).", "Carved parts print <b>white</b>.", "Press <b>Pull a print</b>, match the target, then <b>save</b> it."]],
         14: ["Shape the spinning clay into the dashed vase.", ["<b>Press</b> a finger on the side of the clay: push in or pull out.", "Match the <b>dashed vase outline</b>.", "Then press <b>Fire the kiln</b>."]],
         15: ["Rebuild the broken plate and mend the cracks with gold.", ["<b>Drag each shard</b> from the tray into the dashed circle so the pattern lines up.", "When the plate is whole, <b>trace every crack</b> with your finger to fill it with gold.", "Cover all the cracks."]],
         16: ["Colour the stained glass window so no touching panes match.", ["<b>Pick a glass colour</b>, then tap or drag across panes to fill them.", "Panes that touch along a lead line must be <b>different colours</b> (or the lead glows red).", "Fill every pane and use each colour at least twice."]],
