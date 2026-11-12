@@ -6869,6 +6869,7 @@
             </svg></div>
           <div class="tk-status">Drag pieces onto the square. Tap a piece to turn it.</div>
           <button class="s28-flip px-3 py-2 rounded-xl border border-[#CFC3A8] bg-white text-sm text-[#5C5346]">↔ Flip the purple piece</button>
+          <button class="s28-show px-3 py-2 rounded-xl border border-[#CFC3A8] bg-white text-sm text-[#5C5346]">💡 Show me how</button>
           <button class="s28-reset px-3 py-2 rounded-xl border border-[#CFC3A8] bg-white text-sm text-[#5C5346]">Put the pieces back</button>
         </div>`;
       const root = mount.querySelector(".s28-root"), svgEl = mount.querySelector(".s28-svg"), gP = mount.querySelector(".s28-pieces"), say = (m, k) => TK.status(root, m, k);
@@ -6903,6 +6904,12 @@
         };
         el.addEventListener("pointermove", mv); el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
       }
+      mount.querySelector(".s28-show").onclick = () => {
+        if (solved) return; const old = svgEl.querySelector(".s28-sol"); if (old) old.remove();
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g"); g.setAttribute("class", "s28-sol"); g.setAttribute("pointer-events", "none");
+        g.innerHTML = tgtPolys.map((pl, i) => `<polygon points="${ps(pl)}" fill="${P[items[i].type].col}" stroke="#3b2f25" stroke-width="2" stroke-linejoin="round"/>`).join("");
+        svgEl.appendChild(g); say("This is how all seven pieces fit. Try to copy it!", "info"); setTimeout(() => g.remove(), 4000);
+      };
       mount.querySelector(".s28-flip").onclick = () => { if (solved) return; const s = st.find(q => q.type === "PA"); s.f = s.f ? 0 : 1; fit(s); snap(s); render(); if (mismatch() <= 0.06) finish(); };
       mount.querySelector(".s28-reset").onclick = () => { if (solved) return; st = items.map((it, i) => ({ id: i, type: it.type, x: start[i][0], y: start[i][1], r: start[i][2], f: 0 })); render(); say("Pieces back in the box.", "info"); };
       render();
